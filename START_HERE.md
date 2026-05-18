@@ -32,15 +32,14 @@ pytest -v
 python -m fetchers.cbs_statline --table 86165NED --region "Utrecht" --out ..\data\reference
 ```
 
-- RWZI data: manual export via Watson, then validate:
-- RWZI data: manual export via Watson, then parse into normalized files:
+- RWZI locations/areas via open PDOK WFS, plus optional Watson measurements:
 
 ```powershell
 python -m fetchers.rwzi_register --out ..\data\reference
 python -m fetchers.parse_watson_meetresultaten --in ..\data\reference\Watson_Meetresultaten.xlsx --out-dir ..\data\reference
 ```
 
-- If no separate RWZI catchment source is available, use `rwzi_code` and `rwzi_locatie` from the parsed export as join keys and document this limitation in your quality report.
+- If no separate RWZI catchment source is available beyond PDOK, use `beheerstedelijkwater:BeheerGebied` as the best open area proxy and document this limitation in your quality report.
 
 ## 5) Build a first synthetic slice
 
