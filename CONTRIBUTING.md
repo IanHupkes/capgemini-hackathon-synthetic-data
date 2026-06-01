@@ -64,7 +64,20 @@ By participating you agree to abide by the [Code of Conduct](CODE_OF_CONDUCT.md)
 
 ## Licensing of contributions
 
-- Code contributions are licensed under **Apache-2.0** (see [LICENSE](LICENSE)).
-- Data, documentation, and methodology contributions are licensed under **CC BY 4.0** (see [LICENSE-DATA](LICENSE-DATA)).
+This is the **canonical licensing rule** for the repository. All other
+documents (PR template, README, CHALLENGE.md) refer back here.
 
-By submitting a contribution you confirm that you have the right to license it under these terms.
+- This **starter repository** is licensed under **Apache-2.0** for code
+  (see [LICENSE](LICENSE)) and **CC BY 4.0** for data, documentation, and
+  challenge text (see [LICENSE-DATA](LICENSE-DATA)).
+- **Hackathon team submissions** must be released open source under an
+  **OSI-approved licence** for code (Apache-2.0, MIT, EUPL-1.2 or another
+  OSI-approved licence) and an open data licence for the dataset and the
+  quality report (CC BY 4.0 recommended; CC0 also accepted).
+- Code contributed *into this starter repo* is licensed under Apache-2.0;
+  data and documentation contributed into this repo are licensed under
+  CC BY 4.0. Submissions that live in a team fork can keep any
+  OSI-approved licence as long as it is openly readable from the PR.
+
+By submitting a contribution you confirm that you have the right to
+license it under these terms.

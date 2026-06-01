@@ -24,7 +24,7 @@
 
 - [ ] **M1**  -  Submission contains a micro-level synthetic dataset for at least one Dutch region.
 - [ ] **M2**  -  Only publicly available sources used; every source is listed below and links to a public location.
-- [ ] **M3**  -  Code and method are open-source under an OSI-approved licence (Apache-2.0, MIT, EUPL-1.2, …).
+- [ ] **M3**  -  Code and method are open-source under an OSI-approved licence (Apache-2.0, MIT, EUPL-1.2, …); dataset and quality report under CC BY 4.0 or CC0. See [`CONTRIBUTING.md`](../CONTRIBUTING.md#licensing-of-contributions) for the canonical rule.
 - [ ] **M4**  -  Output covers every variable marked `must-have` in [`data/variables.yaml`](../data/variables.yaml).
 
 ### ⭐ Should-have evidence (linked in the PR body)

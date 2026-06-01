@@ -1,8 +1,15 @@
-"""Fetch open RWZI spatial data from PDOK WFS (RIONED GWSW).
+"""Fetch open RWZI spatial data from PDOK GWSW WFS (RIONED).
+
+This is the **canonical catchment source** for the challenge: an open WFS
+(CC0) published by RIONED via PDOK. No login required.
 
 Downloads two GeoJSON files:
 - RWZI point locations (`beheerstedelijkwater:BeheerBouwwerk`)
-- management areas (`beheerstedelijkwater:BeheerGebied`)
+- catchment / management areas (`beheerstedelijkwater:BeheerGebied`)
+
+The RIVM / NRS open GIS layer remains available as a secondary fallback
+for regions where PDOK GWSW does not deliver usable polygons; see
+`docs/data-sources.md`.
 
 Run:
     python -m fetchers.rwzi_register --out ../data/reference

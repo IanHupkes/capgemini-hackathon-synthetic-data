@@ -108,8 +108,8 @@ variables:
     priority: must-have
     category: spatial
     discipline: meta
-    source: rivm-nrs-catchment
-    table_id: rwzi-catchment-gis
+    source: pdok-gwsw-rwzi
+    table_id: pdok-gwsw-beheergebied
 
   - id: landgebruik-woongebied
     name: Landgebruik - aandeel woongebied (% oppervlak)

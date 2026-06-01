@@ -9,7 +9,7 @@
 > **Contact:** [hack@govtechnl.nl](mailto:hack@govtechnl.nl)
 
 This is an English working translation of the original Dutch challenge brief.
-The authoritative source is [`resources/OneGov2_Challenge_Brief_Synthetische_Data.pdf`](resources/OneGov2_Challenge_Brief_Synthetische_Data.pdf) and the version on the Junction platform.
+The authoritative source is [`OneGov#2_Challenge_Brief_Synthetische_Data.pdf`](OneGov%232_Challenge_Brief_Synthetische_Data.pdf) and the version on the Alkemio platform.
 
 ---
 
@@ -155,6 +155,28 @@ At the end of the hackathon every team delivers:
 - A **pitch** (max. 5 minutes): which approach you chose, its strengths and limitations, and how the dataset is usable for pandemic modelling.
 - A **pitch deck** (max. 10 slides).
 
+## Submission
+
+Submissions for this challenge go through **Alkemio**, the central
+inlever- and review-platform used by the jury.
+
+**Alkemio submission space:** [Synthetische Data](https://alkem.io/onegov-hackathon/challenges/synthetischedata).
+
+What each team submits via Alkemio:
+
+1. A **link to the team's Pull Request** on this repository
+   ([github.com/govtechnl/onegov2-synthetic-data](https://github.com/govtechnl/onegov2-synthetic-data)),
+   one PR per team.
+2. The **synthetic dataset** as an open file (CSV or Parquet) for at least
+   one Dutch region.
+3. The **quality report** following [`docs/kwaliteitsrapport-template.md`](docs/kwaliteitsrapport-template.md).
+4. The **pitch deck** (max. 10 slides, PDF or link).
+
+**The Alkemio submission is what the jury scores during the hackathon.**
+The Pull Request is still required: it is the artefact teams point to from
+their Alkemio submission, and it is leading for the post-hackathon review
+and merge of high-quality contributions into the central library.
+
 ## Technical framing
 
 When building the synthetic dataset you will hit a number of methodological choices:
@@ -171,8 +193,9 @@ When building the synthetic dataset you will hit a number of methodological choi
 | CBS StatLine | [statline.cbs.nl](https://opendata.cbs.nl/statline)  -  Kerncijfers wijken en buurten (`86165NED`), Bodemgebruik (`70262NED`), Nabijheidsstatistieken (`85870NED`), ODiN (`84709NED`), Onderwijsniveau (`82275NED`) |
 | CBS Open Data API | [opendata.cbs.nl/ODataApi](https://opendata.cbs.nl/ODataApi/odata/)  -  programmatic access used by [`tooling/fetchers/cbs_statline.py`](tooling/fetchers/cbs_statline.py) |
 | RWZI register | [emissieregistratie.nl](https://www.emissieregistratie.nl/)  -  locations, capacities and catchments of wastewater treatment plants |
-| RWZI catchment maps | RIVM / NRS  -  open GIS files with catchment polygons per RWZI |
-| BAG (open) | [bag.basisregistraties.overheid.nl](https://bag.basisregistraties.overheid.nl/)  -  addresses and buildings |
+| RWZI catchment maps (canonical) | PDOK GWSW WFS (RIONED), `beheerstedelijkwater:BeheerGebied` and `beheerstedelijkwater:BeheerBouwwerk`  -  <https://service.pdok.nl/rioned/beheer-stedelijk-watersystemen-gwsw/wfs/v1_0> |
+| RWZI catchment maps (secondary) | RIVM / NRS  -  open GIS files with catchment polygons per RWZI, used as fallback where PDOK GWSW does not cover the region |
+| BAG (open, optional reference) | [bag.basisregistraties.overheid.nl](https://bag.basisregistraties.overheid.nl/)  -  addresses and buildings; **not** a must-have, useful for placing synthetic households on a real building |
 | MetaSyn (reference) | [github.com/sodascience/metasyn](https://github.com/sodascience/metasyn)  -  open-source library for synthetic data |
 | GreenPT API (optional) | [greenpt.nl](https://greenpt.nl/)  -  API access for teams that want to integrate LLM calls |
 | Junction platform | [hackjunction.app](https://hackjunction.app)  -  all challenge material and team registration |

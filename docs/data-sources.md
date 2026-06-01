@@ -23,18 +23,28 @@ All CBS Open Data tables are accessible through the **CBS Open Data API**: <http
 | Source | Used for | Link |
 |---|---|---|
 | **RWZI-register** (Emissieregistratie) | RWZI ID, name, location, capacity, connections | <https://www.emissieregistratie.nl/> |
-| **RWZI-stroomgebiedskaart** (RIVM / NRS) | Catchment polygons per RWZI | <https://www.rivm.nl/coronavirus-covid-19/onderzoek/rioolwater> · <https://nationaalgeoregister.nl/> |
+| **RWZI-stroomgebiedskaart, PDOK GWSW WFS** (canonical) | Catchment / management areas (`beheerstedelijkwater:BeheerGebied`) and point locations (`beheerstedelijkwater:BeheerBouwwerk`) per RWZI | <https://www.pdok.nl/introductie/-/article/beheer-stedelijk-watersystemen-gwsw> · WFS: <https://service.pdok.nl/rioned/beheer-stedelijk-watersystemen-gwsw/wfs/v1_0> |
+| **RWZI-stroomgebiedskaart** (RIVM / NRS, secondary) | Fallback catchment polygons via the NRS programme; use only where PDOK GWSW does not cover the region | <https://www.rivm.nl/coronavirus-covid-19/onderzoek/rioolwater> · <https://nationaalgeoregister.nl/> |
 
-The catchment GIS layer is published by RIVM / NRS as part of the national wastewater surveillance programme. Download formats vary; the starter [`tooling/fetchers/rwzi_register.py`](../tooling/fetchers/rwzi_register.py) is a thin wrapper.
+The **canonical catchment source** is the PDOK GWSW WFS published by RIONED. It is an open WFS (CC0) and is the source consumed by [`tooling/fetchers/rwzi_register.py`](../tooling/fetchers/rwzi_register.py). The RIVM / NRS layer is kept as a documented secondary source: use it only when PDOK GWSW does not cover the region of interest, and note the fallback in your quality report.
 
-## BAG (Basisregistratie Adressen en Gebouwen)
+If neither layer covers the region you need, the parsed Watson export
+([`tooling/fetchers/parse_watson_meetresultaten.py`](../tooling/fetchers/parse_watson_meetresultaten.py))
+still provides `rwzi_code` and `rwzi_locatie` as join keys; treat that as a
+final fallback rather than a primary catchment source.
+
+## BAG (Basisregistratie Adressen en Gebouwen)  -  optional reference
 
 | Source | Used for | Link |
 |---|---|---|
 | **BAG** (open) | Address points, building footprints, building year, function | <https://bag.basisregistraties.overheid.nl/> |
 | **BAG via PDOK** | Same data, served as WFS / Atom GIS feeds | <https://www.pdok.nl/introductie/-/article/basisregistratie-adressen-en-gebouwen-ba-1> |
 
-Useful when teams want to place synthetic households on a building rather than only at *buurt* centroid.
+BAG is **not a must-have data source**. It is an *optional reference layer*
+for teams that want to place synthetic households on a real building rather
+than the *buurt* centroid, or that want to derive building-type detail for
+instellingstype-in-catchment (could-have). Submissions that stay at *buurt*
+level do not need BAG.
 
 ## Reference and inspiration (optional)
 

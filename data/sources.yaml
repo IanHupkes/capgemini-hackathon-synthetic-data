@@ -79,13 +79,31 @@ sources:
     licence: Public (attribution)
     notes: Locations and capacities of Dutch wastewater treatment plants.
 
+  - id: pdok-gwsw-rwzi
+    name: RWZI-stroomgebiedskaart (PDOK, RIONED GWSW)
+    provider: PDOK
+    kind: open-gis
+    url: https://www.pdok.nl/introductie/-/article/beheer-stedelijk-watersystemen-gwsw
+    api_url: https://service.pdok.nl/rioned/beheer-stedelijk-watersystemen-gwsw/wfs/v1_0
+    licence: CC0
+    notes: |
+      Canonical open WFS for RWZI catchment / management areas
+      (`beheerstedelijkwater:BeheerGebied`) and point locations
+      (`beheerstedelijkwater:BeheerBouwwerk`). Used by
+      tooling/fetchers/rwzi_register.py. The rivm-nrs-catchment entry
+      stays available as a documented secondary / fallback source.
+
   - id: rivm-nrs-catchment
-    name: RWZI-stroomgebiedskaart (catchment polygons)
+    name: RWZI-stroomgebiedskaart (RIVM / NRS, secondary)
     provider: RIVM
     kind: open-gis
     url: https://www.rivm.nl/coronavirus-covid-19/onderzoek/rioolwater
     licence: RIVM open data (attribution)
-    notes: Catchment polygons per RWZI, published via the NRS programme.
+    notes: |
+      Secondary / fallback catchment polygons published via the National
+      Rioolwatersurveillance (NRS) programme. Use only when the canonical
+      PDOK GWSW WFS does not cover the region of interest, and document
+      the fallback in the team's quality report.
 
   - id: bag-open
     name: Basisregistratie Adressen en Gebouwen (BAG)

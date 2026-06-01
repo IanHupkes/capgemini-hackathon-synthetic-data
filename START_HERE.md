@@ -32,14 +32,57 @@ pytest -v
 python -m fetchers.cbs_statline --table 86165NED --region "Utrecht" --out ..\data\reference
 ```
 
-- RWZI locations/areas via open PDOK WFS, plus optional Watson measurements:
+- RWZI locations and **catchment areas** via the canonical PDOK GWSW WFS
+  (RIONED). This is an open WFS, no login required:
 
 ```powershell
 python -m fetchers.rwzi_register --out ..\data\reference
-python -m fetchers.parse_watson_meetresultaten --in ..\data\reference\Watson_Meetresultaten.xlsx --out-dir ..\data\reference
 ```
 
-- If no separate RWZI catchment source is available beyond PDOK, use `beheerstedelijkwater:BeheerGebied` as the best open area proxy and document this limitation in your quality report.
+  Output: `pdok_gwsw_rwzi.geojson` (point locations,
+  `beheerstedelijkwater:BeheerBouwwerk`) and `pdok_gwsw_beheergebied.geojson`
+  (catchment / management areas, `beheerstedelijkwater:BeheerGebied`).
+
+- Optional, **wastewater measurements via Watson** (manual export, no
+  login):
+
+  The Watson portal at <https://data.emissieregistratie.nl/watson> is
+  publicly accessible without login. Exports are produced via a four-tab
+  wizard in the browser UI; there is no automated fetcher because the
+  query is user-driven. Walk through the tabs left-to-right:
+
+  1. **Stof** tab. Pick one or more substance categories from the list
+     (Antivlooienmiddelen, Bestrijdingsmiddelen, Biociden, E-PRTR,
+     Hormonen / medicijnen, Industriële stoffen, KRW-stoffen,
+     Medicijnen mens, Metalen en elementen, ...). Expand a category and
+     tick the specific stoffen you need.
+  2. **RWZI** tab. Pick the RWZIs to export. RWZIs are grouped by
+     stroomgebied (EEMS, MAAS, RIJN-NOORD, RIJN-OOST, RIJN-WEST,
+     SCHELDE, NIET INGEDEELD / N.N.B.). Select all groups for a
+     national export, or expand a group to pick individual plants.
+  3. **Rapportage** tab. Set: Soort = `Meetresultaten per stof`, Type
+     afvalwater = `Effluent` (or `Influent`), Berekening =
+     `Vracht` / `Vracht per VE` / `Gehalte`, Periode van / t/m to the
+     date range you want, Rapporteren = `Per stof gehele periode`.
+  4. **Exporteer** tab. Review the selection summary on screen and
+     click **Download**. Save the resulting Excel file as
+     `data/reference/Watson_Meetresultaten.xlsx`.
+
+  Then run the parser to normalise the export:
+
+  ```powershell
+  python -m fetchers.parse_watson_meetresultaten --in ..\data\reference\Watson_Meetresultaten.xlsx --out-dir ..\data\reference
+  ```
+
+  This step is optional; teams that only build Layer 1 (demographics)
+  can skip it.
+
+- **Catchment fallback path.** The PDOK GWSW WFS above is the canonical
+  catchment source. If, for the region you are working on, PDOK GWSW does
+  not deliver usable polygons, fall back to: (a) the RIVM / NRS open GIS
+  layer (see [`docs/data-sources.md`](docs/data-sources.md#rwzi-register-and-catchments)),
+  or, as a last resort, (b) `rwzi_code` and `rwzi_locatie` from the parsed
+  Watson export as join keys. Document any fallback in your quality report.
 
 ## 5) Build a first synthetic slice
 

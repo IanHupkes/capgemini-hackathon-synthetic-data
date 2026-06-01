@@ -21,7 +21,7 @@ The full list of variables a submission can target, with priority, category, dis
 | Stedelijkheidsgraad / urban-rural classificatie | Spatial | Epi | `86165NED` |
 | Opleidingsniveau (laag / midden / hoog, % bevolking 25+) | Socio-economic | Soc | Onderwijsniveau  -  `82275NED` |
 | RWZI-ID, naam, locatie, capaciteit | Spatial | Meta | RWZI-register  -  Emissieregistratie.nl |
-| Catchment-oppervlak en aansluitingen | Spatial | Meta | RWZI-stroomgebiedskaart  -  RIVM / NRS open GIS |
+| Catchment-oppervlak en aansluitingen | Spatial | Meta | RWZI-stroomgebiedskaart  -  PDOK GWSW WFS (canonical); RIVM / NRS open GIS as secondary fallback |
 | Landgebruik: aandeel woongebied (% oppervlak) | Land use | Meta | Bodemgebruik  -  `70262NED` |
 | Landgebruik: aandeel industrie / bedrijventerrein (%) | Land use | Meta | `70262NED` |
 | Landgebruik: aandeel agrarisch (%) | Land use | Meta | `70262NED` |

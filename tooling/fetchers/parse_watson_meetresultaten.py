@@ -1,7 +1,17 @@
 """Parse Watson 'Meetresultaten' export into normalized files.
 
-Input is the Excel export from https://data.emissieregistratie.nl/watson,
-typically with two sheets:
+This script is a **parser, not an automated fetcher**. The Watson portal
+(https://data.emissieregistratie.nl/watson) is publicly accessible without
+login, but exports are produced by a user-driven query in the browser UI.
+
+Workflow:
+  1. Open https://data.emissieregistratie.nl/watson (no login required).
+  2. Use the on-screen filters to scope your query (RWZI, stof, periode).
+  3. Export the result as Excel and save it as
+     `data/reference/Watson_Meetresultaten.xlsx`.
+  4. Run this script to normalise the export.
+
+Input is the Excel export with typically two sheets:
 - Metadata
 - Meetresultaten
 
