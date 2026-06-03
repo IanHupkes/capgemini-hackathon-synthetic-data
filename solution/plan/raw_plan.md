@@ -205,3 +205,29 @@ Bewaken van scope en succes van de hackathon
 - beslissen “goed genoeg”
 - voorkomen scope creep
 - sturen op werkende demo i.p.v. perfectie
+
+---
+
+### Stakeholder
+
+**Owner:** Wessel & Rico? & Jaap?
+
+**Doel:**
+Inzicht krijgen in het probleem, de context en de wensen van stakeholders
+
+**Verantwoordelijkheden:**
+- ophalen van requirements en use-cases
+- valideren of oplossing aansluit bij verwachtingen
+- vertalen van wensen naar concrete features
+
+
+**Activiteiten:**
+- korte afstemming met stakeholders (indien beschikbaar)
+- formuleren van succescriteria
+- feedback ophalen op demo/resultaten (guerilla testing)
+
+**Output:**
+- duidelijke use-case(s)
+- lijst met prioriteiten / wensen
+- validatie: voldoet oplossing aan behoefte?
+
