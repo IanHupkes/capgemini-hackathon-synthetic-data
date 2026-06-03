@@ -57,7 +57,6 @@ zie #data_model.md
 
 ```
 
----
 
 ## Stap 2 – Micro Data (IPF)
 
@@ -125,7 +124,7 @@ Controleren of synthetische populatie overeenkomt met brondata
 ---
 
 
-## 🖥️ UI
+## UI
 
 **Owner:** Wessel
 
