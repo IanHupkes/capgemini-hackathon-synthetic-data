@@ -1,11 +1,8 @@
 package cap.datademie.synthdata;
 
-import cap.datademie.synthdata.dto.SynthPerson;
 import cap.datademie.synthdata.dto.WebRequest;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-
-import java.util.Set;
 
 import static cap.datademie.synthdata.service.Service.generateSynthPop;
 
@@ -21,7 +18,7 @@ public class SynthdataApplication {
 
 		System.out.print("got hur 1");
 		try {
-			Set<SynthPerson> result = generateSynthPop(req);
+			String result = generateSynthPop(req);
 			System.out.println("Result: " + result);
 		} catch (Exception e) {
 			e.printStackTrace();
