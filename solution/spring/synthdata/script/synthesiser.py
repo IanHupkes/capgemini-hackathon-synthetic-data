@@ -29,6 +29,7 @@ from ipf_pipeline import (  # noqa: E402
     run_pipeline as run_ipf_2d,
 )
 from ipf_pipeline_nd import run_pipeline_nd as run_ipf_nd  # noqa: E402
+from seeds import DEFAULT_SEED_TYPE  # noqa: E402
 
 
 DEFAULT_MODE = "nd"
@@ -77,8 +78,11 @@ def _synthesise_nd(
     n: int | None,
     seed: int | None,
     dims: list[str] | None,
+    ipf_seed_type: str,
 ) -> dict:
-    ipf_result = run_ipf_nd(buurt, macro, dims=dims, seed=seed)
+    ipf_result = run_ipf_nd(
+        buurt, macro, dims=dims, seed=seed, ipf_seed_type=ipf_seed_type
+    )
     used_dims = ipf_result["dims"]
     reference_marginal = ipf_result["marginals"][used_dims[0]]
 
@@ -98,6 +102,7 @@ def _synthesise_nd(
         "dims": used_dims,
         "n": gen_result["n"],
         "seed": seed,
+        "ipf_seed_type": ipf_seed_type,
         "residuals": ipf_result["residuals"],
         "fitted_table": {"|".join(k): v for k, v in ipf_result["fitted_table"].items()},
         "cell_counts": {"|".join(k): v for k, v in counts.items()},
@@ -114,12 +119,15 @@ def synthesise(
     row_dim: str = DEFAULT_ROW_DIM,
     col_dim: str = DEFAULT_COL_DIM,
     dims: list[str] | None = None,
+    ipf_seed_type: str = DEFAULT_SEED_TYPE,
 ) -> dict:
     """Run IPF (2-D or N-D) then sample a synthetic population.
 
     `mode` is `"2d"` for the legacy 2-D pipeline or `"nd"` for the
     N-dimensional one. In `nd` mode, `dims` defaults to all marginals
-    present in `macro['marginals']`.
+    present in `macro['marginals']` and `ipf_seed_type` selects the
+    initial seed builder from :mod:`seeds` (e.g. `"noise"`,
+    `"uniform"`, `"independence"`).
     """
     area = macro.get("area", {}) or {}
     buurt = area.get("code", "UNKNOWN")
@@ -129,7 +137,9 @@ def synthesise(
             macro, area, buurt, n=n, seed=seed, row_dim=row_dim, col_dim=col_dim
         )
     if mode == "nd":
-        return _synthesise_nd(macro, area, buurt, n=n, seed=seed, dims=dims)
+        return _synthesise_nd(
+            macro, area, buurt, n=n, seed=seed, dims=dims, ipf_seed_type=ipf_seed_type
+        )
     raise ValueError(f"unknown mode '{mode}'; expected '2d' or 'nd'")
 
 
@@ -139,10 +149,11 @@ def main() -> None:
         return
 
     mode = sys.argv[2] if len(sys.argv) > 2 else DEFAULT_MODE
+    ipf_seed_type = sys.argv[3] if len(sys.argv) > 3 else DEFAULT_SEED_TYPE
 
     try:
         macro = json.loads(sys.argv[1])
-        result = synthesise(macro, mode=mode)
+        result = synthesise(macro, mode=mode, ipf_seed_type=ipf_seed_type)
     except Exception as exc:  # surface any failure to Java
         print(json.dumps({"status": "error", "message": str(exc), "mode": mode}))
         return
