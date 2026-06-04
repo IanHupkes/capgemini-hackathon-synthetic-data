@@ -32,13 +32,10 @@ public class Controller {
         // call service
         Set<SynthPerson> synthPop = Service.generateSynthPop(req);
 
-
-
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=data.csv")
                 .contentType(MediaType.parseMediaType("text/csv"))
                 .body(synthPop);
     }
-
 
 }
