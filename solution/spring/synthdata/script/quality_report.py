@@ -4,10 +4,9 @@ This script maps the report sections from `docs/kwaliteitsrapport-template.md`
 to concrete calculations and artefacts (metrics, markdown tables, and optional
 plots).
 
-Input can be either:
-- a JSON file containing `run_generation(...)` output, or
-- `--demo`, which runs `ipf_pipeline.run_pipeline` + `generation_pipeline.run_generation`
-  on the built-in macro example and then produces a report.
+Input: a JSON file containing `synthesiser.synthesise(...)` output (produced by
+the Spring service via `synthesiser.py`). All pipeline steps (IPF + generation)
+are assumed to have already been executed before this module is called.
 """
 
 from __future__ import annotations
@@ -28,9 +27,6 @@ from typing import Any, Iterable, Mapping
 
 # Keep local imports working when invoked from Spring service context.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-
-from generation_pipeline import run_generation, summarise_population  # noqa: E402
-from ipf_pipeline import EXAMPLE_MACRO_JSON, run_pipeline as run_ipf  # noqa: E402
 
 
 @dataclass
@@ -61,7 +57,12 @@ def _normalise_cell_table(raw: Mapping[str, Any]) -> dict[tuple[str, str], float
 def _compute_population_counts(
     population: Iterable[Mapping[str, Any]], row_dim: str, col_dim: str
 ) -> dict[tuple[str, str], int]:
-    return summarise_population(population, row_dim, col_dim)
+    counts: dict[tuple[str, str], int] = Counter()
+    for person in population:
+        row_val = str(person.get(row_dim, "unknown"))
+        col_val = str(person.get(col_dim, "unknown"))
+        counts[(row_val, col_val)] += 1
+    return dict(counts)
 
 
 def _marginal_from_joint(
@@ -595,7 +596,7 @@ def _parse_args() -> argparse.Namespace:
     root = here.parents[3]
 
     parser = argparse.ArgumentParser(description="Generate quality report from synthetic population output")
-    parser.add_argument("--input-json", type=Path, help="JSON from generation_pipeline.run_generation or synthesiser output")
+    parser.add_argument("--input-json", type=Path, required=True, help="JSON output from synthesiser.py")
     parser.add_argument("--source-macro-json", type=Path, help="Macro data JSON containing source marginals")
     parser.add_argument("--reference-joint-json", type=Path, help="Optional reference joint table keyed as 'row|col' -> value")
     parser.add_argument("--spatial-json", type=Path, help="Optional spatial coherence input JSON")
@@ -603,7 +604,6 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--variables-yaml", type=Path, default=root / "data" / "variables.yaml")
     parser.add_argument("--output-md", type=Path, default=here / "quality-report.md")
     parser.add_argument("--output-dir", type=Path, default=here / "quality-report-artifacts")
-    parser.add_argument("--demo", action="store_true", help="Run demo using EXAMPLE_MACRO_JSON and generate report")
     return parser.parse_args()
 
 
@@ -617,23 +617,7 @@ def main() -> None:
     if args.source_macro_json:
         source_macro = _load_json(args.source_macro_json)
 
-    if args.demo:
-        macro = json.loads(EXAMPLE_MACRO_JSON)
-        ipf_result = run_ipf(macro.get("area", {}).get("code", "BU001"), macro, seed=42)
-        generation_output = run_generation(
-            ipf_result["fitted_table"],
-            ipf_result["row_dim"],
-            ipf_result["col_dim"],
-            row_marginal=ipf_result["row_marginal"],
-            seed=42,
-        )
-        generation_output["area"] = macro.get("area", {})
-        generation_output["fitted_table"] = {f"{r}|{c}": v for (r, c), v in ipf_result["fitted_table"].items()}
-        source_macro = macro
-    elif args.input_json:
-        generation_output = _load_json(args.input_json)
-    else:
-        raise SystemExit("Provide --input-json or use --demo")
+    generation_output = _load_json(args.input_json)
 
     reference_joint = _load_json(args.reference_joint_json) if args.reference_joint_json else None
     spatial_data = _load_json(args.spatial_json) if args.spatial_json else None

@@ -29,7 +29,15 @@ from ipf_pipeline import (  # noqa: E402
     run_pipeline as run_ipf_2d,
 )
 from ipf_pipeline_nd import run_pipeline_nd as run_ipf_nd  # noqa: E402
+from quality_report import (  # noqa: E402
+    _mean_abs_percentage_error,
+    _total_abs_error_over_total,
+    _chi_square,
+    generate_quality_report,
+
+)
 from seeds import DEFAULT_SEED_TYPE  # noqa: E402
+
 
 
 DEFAULT_MODE = "nd"
@@ -67,8 +75,6 @@ def _synthesise_2d(
         "fitted_table": {f"{r}|{c}": v for (r, c), v in ipf_result["fitted_table"].items()},
         "cell_counts": {"|".join(k): v for k, v in counts.items()},
         "population": gen_result["population"],
-
-        #TODO add quality report data
     }
 
 
@@ -96,9 +102,18 @@ def _synthesise_nd(
         seed=seed,
     )
 
-    #TODO add quality report script
-
     counts = summarise_population_nd(gen_result["population"], used_dims)
+    gen_quality_report = {
+        "mean_abs_percentage_error": _mean_abs_percentage_error(
+            ipf_result["fitted_table"], counts
+        ),
+        "total_abs_error_over_total": _total_abs_error_over_total(
+            ipf_result["fitted_table"], counts
+        ),
+        "chi_square": _chi_square(ipf_result["fitted_table"], counts),
+    }
+
+    #generate_quality_report(ipf_result["fitted_table"], out_md=None, out_dir=None, variables_yaml=None)
 
     return {
         "status": "success",
@@ -112,6 +127,7 @@ def _synthesise_nd(
         "fitted_table": {"|".join(k): v for k, v in ipf_result["fitted_table"].items()},
         "cell_counts": {"|".join(k): v for k, v in counts.items()},
         "population": gen_result["population"],
+        "quality_report": gen_quality_report
     }
 
 
