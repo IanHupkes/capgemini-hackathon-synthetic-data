@@ -31,12 +31,6 @@ import numpy as np
 
 Marginal = Dict[str, float]
 
-DEFAULT_DIMS: Tuple[str, ...] = (
-    "leeftijd",
-    "huishoudgrootte",
-    "woningtype",
-)
-
 
 def extract_marginal(macro: Mapping, dim: str) -> Marginal:
     """Pull a single named 1-D marginal out of the macro-data mapping."""
@@ -155,7 +149,7 @@ def table_to_cells(
 def run_pipeline_nd(
     buurt: str,
     macro: Mapping | str,
-    dims: Sequence[str] = DEFAULT_DIMS,
+    dims: Sequence[str] | None = None,
     *,
     seed: int | None = None,
     n_iter: int = 100,
@@ -164,11 +158,13 @@ def run_pipeline_nd(
     """Run the noise-seeded N-D IPF pipeline for a single buurt.
 
     `dims` is the ordered list of dimension names to fit jointly; each
-    must be a key in `macro['marginals']`. Pass three or more names to
-    get a 3-D+ contingency table.
+    must be a key in `macro['marginals']`. When omitted, every key in
+    `macro['marginals']` is used.
     """
     if isinstance(macro, str):
         macro = json.loads(macro)
+    if dims is None:
+        dims = tuple(macro["marginals"].keys())
     if len(dims) < 2:
         raise ValueError("need at least 2 dimensions for IPF")
 
@@ -203,7 +199,6 @@ if __name__ == "__main__":
     result = run_pipeline_nd(
         "BU001",
         EXAMPLE_MACRO_JSON,
-        dims=("leeftijd", "huishoudgrootte", "woningtype"),
         seed=42,
     )
     print("dims:", result["dims"])
