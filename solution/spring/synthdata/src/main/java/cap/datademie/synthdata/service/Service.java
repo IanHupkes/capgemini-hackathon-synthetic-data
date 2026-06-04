@@ -1,16 +1,12 @@
 package cap.datademie.synthdata.service;
 
-import cap.datademie.synthdata.dto.SynthPerson;
 import cap.datademie.synthdata.dto.WebRequest;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 
 import java.io.*;
-import java.util.Set;
 
 public class Service {
 
-    public static Set<SynthPerson> generateSynthPop(WebRequest req) {
+    public static String generateSynthPop(WebRequest req) {
 
         // 1. Extract input from request
         String wijkCode = req.wijkCode;
@@ -21,49 +17,26 @@ public class Service {
         System.out.print("Macro data: " + macroDataJson  + "\n");
 
         // 3. Create synthetic population
-        Set<SynthPerson> synthPop = createSynthPop(macroDataJson);
+        String synthPop = createSynthPop(macroDataJson);
         System.out.print(" \nSynthetische populatie: " + synthPop  + "\n");
-
-        // 4. Validate result
-        validate(synthPop);
-        System.out.print("post validatie"  + "\n");
-
 
         // 5. Return final result
         return synthPop;
     }
 
     // --- Step 2 ---
-    private static Set<SynthPerson> createSynthPop(String macroDataJson) {
-        // pseudo: parse JSON and build objects
+    private static String createSynthPop(String macroDataJson) {
+        String pythonJson = null;
 
-        // e.g. use Jackson / ObjectMapper in real code
-
-        // JsonNode data = objectMapper.readTree(macroDataJson);
         try {
-
-            String test = callPythonSynthesiser(macroDataJson);
-            System.out.print(test);
+            pythonJson = callPythonSynthesiser(macroDataJson);
+            System.out.print(pythonJson);
         } catch (Exception e) {
             System.out.print(e.getMessage());
         }
 
-        return Set.of(); // replace with real generation logic
+        return pythonJson; // replace with real generation logic
     }
-
-    // --- Step 3 ---
-    private static void validate(Set<SynthPerson> synthPop) {
-
-//        if (synthPop == null || synthPop.isEmpty()) {
-//            throw new IllegalStateException("Generated population is empty");
-//        }
-
-        // more validation rules:
-        // - size matches macro data
-        // - no null fields
-        // - constraints OK
-    }
-
 
 
 
