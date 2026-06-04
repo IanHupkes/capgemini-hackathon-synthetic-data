@@ -2,10 +2,10 @@ package cap.datademie.synthdata.service;
 
 import cap.datademie.synthdata.dto.SynthPerson;
 import cap.datademie.synthdata.dto.WebRequest;
-import tools.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
+
+import java.io.*;
 import java.util.Set;
 
 public class Service {
@@ -17,12 +17,12 @@ public class Service {
         System.out.print("Found wijkcode: " + wijkCode + "\n");
 
         // 2. Get macro data (JSON)
-        String macroDataJson = getMacroData(wijkCode);
+        String macroDataJson = MacroDataService.getMacroData(wijkCode);
         System.out.print("Macro data: " + macroDataJson  + "\n");
 
         // 3. Create synthetic population
         Set<SynthPerson> synthPop = createSynthPop(macroDataJson);
-        System.out.print(" \n Synthetische populatie: " + synthPop  + "\n");
+        System.out.print(" \nSynthetische populatie: " + synthPop  + "\n");
 
         // 4. Validate result
         validate(synthPop);
@@ -31,60 +31,6 @@ public class Service {
 
         // 5. Return final result
         return synthPop;
-    }
-
-    // --- Step 1 ---
-    private static String getMacroData(String wijkCode) {
-
-        return """
-            {
-              "area": {
-                "type": "buurt",
-                "code": "BU001",
-                "name": "Voorbeeldbuurt"
-              },
-              "population": 700,
-              "marginals": {
-                "leeftijd": {
-                  "0-14": 105,
-                  "15-24": 98,
-                  "25-44": 210,
-                  "45-64": 182,
-                  "65+": 105
-                },
-                "huishoudgrootte": {
-                  "1": 245,
-                  "2": 280,
-                  "3+": 175
-                },
-                "woningtype": {
-                  "appartement": 280,
-                  "rijtjeshuis": 315,
-                  "vrijstaand": 105
-                },
-                "opleidingsniveau": {
-                  "laag": 210,
-                  "midden": 315,
-                  "hoog": 175
-                },
-                "arbeidsmarktpositie": {
-                  "werkend": 420,
-                  "werkloos": 56,
-                  "arbeidsongeschikt": 224
-                },
-                "achtergrond": {
-                  "niet-westers": 140,
-                  "westers": 560
-                }
-              },
-              "scalars": {
-                "gemiddeld_inkomen_huishouden": 32000,
-                "bezettingsgraad_woning": 2.3,
-                "stedelijkheidsgraad": "sterk stedelijk",
-                "nabijheid_luchthaven_km": 25
-              }
-            }
-        """;
     }
 
     // --- Step 2 ---
@@ -119,6 +65,8 @@ public class Service {
     }
 
 
+
+
     public static String callPythonSynthesiser(String json) throws Exception {
 
         ProcessBuilder pb = new ProcessBuilder(
@@ -126,10 +74,18 @@ public class Service {
                 "script\\synthesiser.py",
                 json
         );
+//        ProcessBuilder pb = new ProcessBuilder("python", "synthesiser.py");
 
         pb.redirectErrorStream(true);
 
         Process process = pb.start();
+
+        try (BufferedWriter writer = new BufferedWriter(
+                new OutputStreamWriter(process.getOutputStream())
+        )) {
+            writer.write(json);
+            writer.flush();
+        }
 
         BufferedReader reader = new BufferedReader(
                 new InputStreamReader(process.getInputStream())
@@ -140,16 +96,19 @@ public class Service {
 
         while ((line = reader.readLine()) != null) {
             System.out.println("PYTHON: " + line);
-            output.append(line);
+            output.append(line).append("\n");
         }
 
         int exitCode = process.waitFor();
 
         if (exitCode != 0) {
-            throw new RuntimeException("Python script failed:\n" + output);
+            throw new RuntimeException(
+                    "Python script failed (exit " + exitCode + "):\n" + output
+            );
         }
 
         return output.toString();
     }
+
 }
 
