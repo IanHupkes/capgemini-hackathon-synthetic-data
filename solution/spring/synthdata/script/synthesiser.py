@@ -66,6 +66,8 @@ def _synthesise_2d(
         "fitted_table": {f"{r}|{c}": v for (r, c), v in ipf_result["fitted_table"].items()},
         "cell_counts": {"|".join(k): v for k, v in counts.items()},
         "population": gen_result["population"],
+
+        #TODO add quality report data
     }
 
 
@@ -89,6 +91,9 @@ def _synthesise_nd(
         reference_marginal=reference_marginal,
         seed=seed,
     )
+
+    #TODO add quality report script
+
     counts = summarise_population_nd(gen_result["population"], used_dims)
 
     return {
