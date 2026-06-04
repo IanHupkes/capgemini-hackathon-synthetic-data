@@ -1,4 +1,4 @@
-"""N-dimensional IPF pipeline with a random-noise seed.
+"""N-dimensional IPF pipeline with a pluggable seed builder.
 
 Generalises :mod:`ipf_pipeline` from a fixed 2-D (row x col) contingency
 table to an N-dimensional table over an arbitrary list of dimensions.
@@ -22,20 +22,14 @@ from __future__ import annotations
 
 import json
 import random
-from functools import reduce
 from itertools import product
-from operator import mul
-from typing import Dict, Iterable, List, Mapping, Sequence, Tuple
+from typing import Dict, List, Mapping, Sequence, Tuple
 
 import numpy as np
 
-Marginal = Dict[str, float]
+from seeds import DEFAULT_SEED_TYPE, build_seed
 
-DEFAULT_DIMS: Tuple[str, ...] = (
-    "leeftijd",
-    "huishoudgrootte",
-    "woningtype",
-)
+Marginal = Dict[str, float]
 
 
 def extract_marginal(macro: Mapping, dim: str) -> Marginal:
@@ -45,20 +39,6 @@ def extract_marginal(macro: Mapping, dim: str) -> Marginal:
     except KeyError as exc:
         raise KeyError(f"marginal '{dim}' not present in macro data") from exc
     return {str(k): float(v) for k, v in raw.items()}
-
-
-def seed_noise(
-    shape: Sequence[int],
-    *,
-    low: float = 1.0,
-    high: float = 100.0,
-    rng: random.Random | None = None,
-) -> np.ndarray:
-    """Build an N-D seed contingency table filled with uniform random noise."""
-    r = rng or random.Random()
-    size = reduce(mul, shape, 1)
-    flat = [r.uniform(low, high) for _ in range(size)]
-    return np.array(flat, dtype=float).reshape(shape)
 
 
 def _rescale_to_total(marginals: Sequence[Marginal]) -> List[Marginal]:
@@ -155,20 +135,24 @@ def table_to_cells(
 def run_pipeline_nd(
     buurt: str,
     macro: Mapping | str,
-    dims: Sequence[str] = DEFAULT_DIMS,
+    dims: Sequence[str] | None = None,
     *,
     seed: int | None = None,
+    ipf_seed_type: str = DEFAULT_SEED_TYPE,
     n_iter: int = 100,
     tol: float = 1e-6,
 ) -> dict:
-    """Run the noise-seeded N-D IPF pipeline for a single buurt.
+    """Run the N-D IPF pipeline for a single buurt.
 
     `dims` is the ordered list of dimension names to fit jointly; each
-    must be a key in `macro['marginals']`. Pass three or more names to
-    get a 3-D+ contingency table.
+    must be a key in `macro['marginals']`. When omitted, every key in
+    `macro['marginals']` is used. `ipf_seed_type` selects the initial
+    seed builder from :mod:`seeds`.
     """
     if isinstance(macro, str):
         macro = json.loads(macro)
+    if dims is None:
+        dims = tuple(macro["marginals"].keys())
     if len(dims) < 2:
         raise ValueError("need at least 2 dimensions for IPF")
 
@@ -177,7 +161,7 @@ def run_pipeline_nd(
     shape = tuple(len(m) for m in marginals)
 
     rng = random.Random(seed)
-    initial = seed_noise(shape, rng=rng)
+    initial = build_seed(ipf_seed_type, marginals, rng)
     fitted = ipf_nd(initial, marginals, n_iter=n_iter, tol=tol)
     residuals = marginal_residuals_nd(fitted, marginals)
 
@@ -185,6 +169,7 @@ def run_pipeline_nd(
         "buurt": buurt,
         "dims": list(dims),
         "seed": seed,
+        "ipf_seed_type": ipf_seed_type,
         "shape": shape,
         "marginals": {d: m for d, m in zip(dims, marginals)},
         "initial_seed_table": table_to_cells(initial, dims, marginals),
@@ -203,7 +188,6 @@ if __name__ == "__main__":
     result = run_pipeline_nd(
         "BU001",
         EXAMPLE_MACRO_JSON,
-        dims=("leeftijd", "huishoudgrootte", "woningtype"),
         seed=42,
     )
     print("dims:", result["dims"])

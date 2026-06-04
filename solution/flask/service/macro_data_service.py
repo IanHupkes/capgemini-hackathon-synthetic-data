@@ -1,9 +1,15 @@
+import json
+import subprocess
+import sys
+from pathlib import Path
+
+
 def get_macro_data(wijk_code: str):
-    # You can use wijk_code later if needed
-    return {
+    """Build a macro-data payload and run the real synthesiser script."""
+    macro = {
         "area": {
             "type": "buurt",
-            "code": "BU001",
+            "code": wijk_code,
             "name": "Voorbeeldbuurt"
         },
         "population": 700,
@@ -47,3 +53,16 @@ def get_macro_data(wijk_code: str):
             "nabijheid_luchthaven_km": 25
         }
     }
+
+    script_path = Path(__file__).resolve().parent / "synthesiser.py"
+    completed = subprocess.run(
+        [sys.executable, str(script_path), json.dumps(macro)],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    if completed.returncode != 0:
+        raise RuntimeError(completed.stderr.strip() or completed.stdout.strip() or "Synthesiser failed")
+
+    return json.loads(completed.stdout)
