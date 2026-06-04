@@ -194,7 +194,7 @@ Zorgen dat de volledige flow end-to-end werkt
 
 ### Product Owner
 
-**Owner:** Rico
+**Owner:** Wessel
 
 **Doel:**
 Bewaken van scope en succes van de hackathon
@@ -209,7 +209,9 @@ Bewaken van scope en succes van de hackathon
 
 ### Stakeholder
 
-**Owner:** Wessel & Rico? & Jaap?
+**Owner:** Wessel
+
+Stakeholders: Tom Emery, Ted Oliekan, Marc Winsemius, Ruben Dood
 
 **Doel:**
 Inzicht krijgen in het probleem, de context en de wensen van stakeholders
@@ -230,3 +232,8 @@ Inzicht krijgen in het probleem, de context en de wensen van stakeholders
 - lijst met prioriteiten / wensen
 - validatie: voldoet oplossing aan behoefte?
 
+--- 
+
+### Presentatie & slidedeck
+
+**Owner:** Wessel & ?
