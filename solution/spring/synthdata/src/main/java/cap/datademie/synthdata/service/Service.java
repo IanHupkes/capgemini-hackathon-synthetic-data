@@ -69,9 +69,13 @@ public class Service {
 
     public static String callPythonSynthesiser(String json) throws Exception {
 
+        boolean isWindows = System.getProperty("os.name").toLowerCase().contains("win");
+        String pythonCmd = isWindows ? "python" : "python3";
+        String scriptPath = java.nio.file.Paths.get("script", "synthesiser.py").toString();
+
         ProcessBuilder pb = new ProcessBuilder(
-                "python",
-                "script\\synthesiser.py",
+                pythonCmd,
+                scriptPath,
                 json
         );
 //        ProcessBuilder pb = new ProcessBuilder("python", "synthesiser.py");
