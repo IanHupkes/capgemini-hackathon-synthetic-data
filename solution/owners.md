@@ -3,8 +3,6 @@
 - **Challenge owner:** Marc Winsemius (Digicampus)
 - **Co-owners:** Ruben Dood (CBS), Tom Emery (ODISSEI), Ted Oliekan (Erasmus MC)
 
-
-
 ## Marc Winsemius - Digicampus -  4 yrs 2 mos
 Kennisgemaakt
 Digicampus -The Hague, South Holland, Netherlands
