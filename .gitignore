@@ -63,3 +63,5 @@ data/synthetic/*
 # GIS scratch
 *.shp.xml
 *.tmp
+
+.obsidian
