@@ -1,21 +1,19 @@
 """IPF pipeline with a random-noise seed.
 
-End-to-end pipeline that fits a 2-D contingency table to local
-CBS-style marginals using Iterative Proportional Fitting (IPF). The
-seed table is generated from random noise.
+Fits a 2-D contingency table to local CBS-style marginals using
+Iterative Proportional Fitting (IPF). The seed table is generated from
+random noise.
 
 Marginals are extracted from a macro-data JSON document shaped like the
 one produced by the Spring service (`Service.getMacroData`): a
 `marginals` object whose keys are dimensions (e.g. `leeftijd`,
 `huishoudgrootte`) and whose values are mappings from category to count.
 
-Run:
-    python -m solution.pipeline.ipf_pipeline --buurt BU03440101
+The CLI entrypoint lives in :mod:`solution.pipeline.full_pipeline`.
 """
 
 from __future__ import annotations
 
-import argparse
 import json
 import random
 from typing import Dict, Iterable, Mapping, Tuple
@@ -165,58 +163,3 @@ def run_pipeline(
 def _stringify_keys(table: Table) -> dict[str, float]:
     return {f"{r}|{c}": v for (r, c), v in table.items()}
 
-
-def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--buurt", default="BU03440101", help="Buurt code (illustrative).")
-    parser.add_argument("--row-dim", default=DEFAULT_ROW_DIM)
-    parser.add_argument("--col-dim", default=DEFAULT_COL_DIM)
-    parser.add_argument(
-        "--macro",
-        help="Path to a macro-data JSON file (defaults to embedded example).",
-    )
-    parser.add_argument(
-        "--seed",
-        type=int,
-        default=None,
-        help="RNG seed for the noise seed table (omit for non-deterministic).",
-    )
-    parser.add_argument("--json", action="store_true", help="Emit result as JSON.")
-    args = parser.parse_args()
-
-    if args.macro:
-        with open(args.macro, "r", encoding="utf-8") as fh:
-            macro_json = fh.read()
-    else:
-        macro_json = EXAMPLE_MACRO_JSON
-
-    result = run_pipeline(
-        args.buurt, macro_json, args.row_dim, args.col_dim, seed=args.seed
-    )
-
-    if args.json:
-        printable = {
-            **result,
-            "initial_seed_table": _stringify_keys(result["initial_seed_table"]),
-            "fitted_table": _stringify_keys(result["fitted_table"]),
-        }
-        print(json.dumps(printable, indent=2))
-        return
-
-    print(
-        f"Noise-seeded IPF pipeline for buurt {result['buurt']} "
-        f"({result['row_dim']} x {result['col_dim']})"
-    )
-    print("\nFitted table:")
-    print(format_table(result["fitted_table"], result["row_marginal"], result["col_marginal"]))
-    print("\nResiduals:")
-    for k, v in result["residuals"].items():
-        print(f"  {k}: {v:.2e}")
-
-
-# TODO: build an evaluation pipeline that runs all the required evaluation methods from /docs/kwaliteitsrapport-template.md
-# TODO: build a generation pipeline that takes the result of the ipf-pipeline and generates a synthetic population (e.g. using the `fitted_table` as a probability distribution for sampling synthetic individuals with attributes corresponding to the row/column dimensions)
-# TODO: chain the ipf-pipeline with the generation pipeline and the evaluation pipeline and return the synthetic population along with the evaluation results in a single end-to-end pipeline
-
-if __name__ == "__main__":
-    main()
