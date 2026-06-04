@@ -33,6 +33,8 @@ from quality_report import (  # noqa: E402
     _mean_abs_percentage_error,
     _total_abs_error_over_total,
     _chi_square,
+    _kl_divergence,
+    _js_divergence,
     generate_quality_report,
 
 )
@@ -111,6 +113,8 @@ def _synthesise_nd(
             ipf_result["fitted_table"], counts
         ),
         "chi_square": _chi_square(ipf_result["fitted_table"], counts),
+        "kl_divergence": _kl_divergence(ipf_result["fitted_table"], counts),
+        "js_divergence": _js_divergence(ipf_result["fitted_table"], counts),
     }
 
     #generate_quality_report(ipf_result["fitted_table"], out_md=None, out_dir=None, variables_yaml=None)
