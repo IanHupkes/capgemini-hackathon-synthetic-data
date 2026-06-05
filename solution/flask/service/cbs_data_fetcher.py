@@ -35,7 +35,6 @@ def fetch_cbs_data(wijk_code: str):
     df_kerncijfers = pd.DataFrame(cbsodata.get_data(KERNCIJFERS_WIJKEN_BUURTEN, filters=f"substring(WijkenEnBuurten,0,{len(wijk_code)}) eq '{wijk_code}'"))
     print(f"Fetched CBS data for wijk {wijk_code}")
     wijk_row = df_kerncijfers.iloc[0]
-    print(wijk_row)
     df_onderwijs = pd.DataFrame(cbsodata.get_data(ONDERWIJS_NIVEAU, filters="Perioden eq '2021KW01'"))
     print("Fetched CBS data for onderwijs niveau")
     df_onderwijs_2021 = df_onderwijs[
