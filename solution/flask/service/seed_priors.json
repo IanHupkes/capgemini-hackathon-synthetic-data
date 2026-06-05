@@ -1,0 +1,87 @@
+{
+  "description": "Hand-authored pairwise association factors used by the 'llm_pairwise' seed builder. A factor of 1.0 means no association (independence); >1.0 over-represented, <1.0 under-represented. Keys are alphabetically sorted dimension pairs joined by '|'. Sourced from plausible Dutch demographic priors, not measured CBS data.",
+  "categories": {
+    "leeftijd": ["0-14", "15-24", "25-44", "45-64", "65+"],
+    "huishoudgrootte": ["1", "2", "3+"],
+    "woningtype": ["appartement", "rijtjeshuis", "vrijstaand"],
+    "opleidingsniveau": ["laag", "midden", "hoog"],
+    "arbeidsmarktpositie": ["werkend", "werkloos", "arbeidsongeschikt"],
+    "achtergrond": ["niet-westers", "westers"]
+  },
+  "pairs": {
+    "huishoudgrootte|leeftijd": {
+      "1":  {"0-14": 0.05, "15-24": 1.30, "25-44": 0.90, "45-64": 1.00, "65+": 1.80},
+      "2":  {"0-14": 0.40, "15-24": 0.90, "25-44": 0.90, "45-64": 1.20, "65+": 1.30},
+      "3+": {"0-14": 1.80, "15-24": 0.90, "25-44": 1.20, "45-64": 0.90, "65+": 0.30}
+    },
+    "leeftijd|woningtype": {
+      "0-14":  {"appartement": 0.70, "rijtjeshuis": 1.20, "vrijstaand": 1.10},
+      "15-24": {"appartement": 1.40, "rijtjeshuis": 0.90, "vrijstaand": 0.50},
+      "25-44": {"appartement": 1.20, "rijtjeshuis": 1.00, "vrijstaand": 0.70},
+      "45-64": {"appartement": 0.70, "rijtjeshuis": 1.10, "vrijstaand": 1.30},
+      "65+":   {"appartement": 1.10, "rijtjeshuis": 0.90, "vrijstaand": 1.10}
+    },
+    "leeftijd|opleidingsniveau": {
+      "0-14":  {"laag": 1.00, "midden": 1.00, "hoog": 1.00},
+      "15-24": {"laag": 0.90, "midden": 1.30, "hoog": 0.80},
+      "25-44": {"laag": 0.70, "midden": 1.00, "hoog": 1.40},
+      "45-64": {"laag": 1.00, "midden": 1.00, "hoog": 1.00},
+      "65+":   {"laag": 1.50, "midden": 0.90, "hoog": 0.70}
+    },
+    "arbeidsmarktpositie|leeftijd": {
+      "werkend":            {"0-14": 0.05, "15-24": 0.90, "25-44": 1.40, "45-64": 1.30, "65+": 0.20},
+      "werkloos":           {"0-14": 0.05, "15-24": 1.50, "25-44": 0.80, "45-64": 0.90, "65+": 0.30},
+      "arbeidsongeschikt":  {"0-14": 3.00, "15-24": 0.60, "25-44": 0.50, "45-64": 0.80, "65+": 2.50}
+    },
+    "achtergrond|leeftijd": {
+      "niet-westers": {"0-14": 1.30, "15-24": 1.20, "25-44": 1.10, "45-64": 0.85, "65+": 0.50},
+      "westers":      {"0-14": 0.95, "15-24": 0.95, "25-44": 1.00, "45-64": 1.05, "65+": 1.10}
+    },
+    "huishoudgrootte|woningtype": {
+      "1":  {"appartement": 1.60, "rijtjeshuis": 0.80, "vrijstaand": 0.60},
+      "2":  {"appartement": 1.00, "rijtjeshuis": 1.05, "vrijstaand": 1.10},
+      "3+": {"appartement": 0.50, "rijtjeshuis": 1.20, "vrijstaand": 1.40}
+    },
+    "huishoudgrootte|opleidingsniveau": {
+      "1":  {"laag": 0.95, "midden": 1.00, "hoog": 1.05},
+      "2":  {"laag": 1.00, "midden": 1.00, "hoog": 1.00},
+      "3+": {"laag": 1.05, "midden": 1.00, "hoog": 0.95}
+    },
+    "arbeidsmarktpositie|huishoudgrootte": {
+      "werkend":           {"1": 0.90, "2": 1.10, "3+": 1.10},
+      "werkloos":          {"1": 1.20, "2": 0.90, "3+": 0.90},
+      "arbeidsongeschikt": {"1": 1.20, "2": 0.95, "3+": 0.85}
+    },
+    "achtergrond|huishoudgrootte": {
+      "niet-westers": {"1": 0.80, "2": 0.90, "3+": 1.40},
+      "westers":      {"1": 1.05, "2": 1.02, "3+": 0.90}
+    },
+    "opleidingsniveau|woningtype": {
+      "laag":   {"appartement": 1.10, "rijtjeshuis": 0.95, "vrijstaand": 0.70},
+      "midden": {"appartement": 1.00, "rijtjeshuis": 1.05, "vrijstaand": 0.95},
+      "hoog":   {"appartement": 0.90, "rijtjeshuis": 1.00, "vrijstaand": 1.40}
+    },
+    "arbeidsmarktpositie|woningtype": {
+      "werkend":           {"appartement": 0.95, "rijtjeshuis": 1.05, "vrijstaand": 1.10},
+      "werkloos":          {"appartement": 1.20, "rijtjeshuis": 0.90, "vrijstaand": 0.60},
+      "arbeidsongeschikt": {"appartement": 1.05, "rijtjeshuis": 0.95, "vrijstaand": 0.90}
+    },
+    "achtergrond|woningtype": {
+      "niet-westers": {"appartement": 1.60, "rijtjeshuis": 0.85, "vrijstaand": 0.40},
+      "westers":      {"appartement": 0.85, "rijtjeshuis": 1.05, "vrijstaand": 1.15}
+    },
+    "arbeidsmarktpositie|opleidingsniveau": {
+      "werkend":           {"laag": 0.85, "midden": 1.05, "hoog": 1.15},
+      "werkloos":          {"laag": 1.30, "midden": 0.95, "hoog": 0.70},
+      "arbeidsongeschikt": {"laag": 1.30, "midden": 0.95, "hoog": 0.80}
+    },
+    "achtergrond|opleidingsniveau": {
+      "niet-westers": {"laag": 1.30, "midden": 1.00, "hoog": 0.75},
+      "westers":      {"laag": 0.93, "midden": 1.00, "hoog": 1.07}
+    },
+    "achtergrond|arbeidsmarktpositie": {
+      "niet-westers": {"werkend": 0.90, "werkloos": 1.60, "arbeidsongeschikt": 1.10},
+      "westers":      {"werkend": 1.03, "werkloos": 0.85, "arbeidsongeschikt": 0.97}
+    }
+  }
+}

@@ -161,7 +161,7 @@ def run_pipeline_nd(
     shape = tuple(len(m) for m in marginals)
 
     rng = random.Random(seed)
-    initial = build_seed(ipf_seed_type, marginals, rng)
+    initial = build_seed(ipf_seed_type, marginals, rng, dims=list(dims))
     fitted = ipf_nd(initial, marginals, n_iter=n_iter, tol=tol)
     residuals = marginal_residuals_nd(fitted, marginals)
 
