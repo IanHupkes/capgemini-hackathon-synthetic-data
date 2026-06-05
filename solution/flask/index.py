@@ -5,6 +5,13 @@ from service.synthesiser import synthesise
 
 app = Flask(__name__)
 
+@app.after_request
+def add_cors_headers(response):
+    response.headers.add("Access-Control-Allow-Origin", "*")
+    response.headers.add("Access-Control-Allow-Headers", "Content-Type, Authorization")
+    response.headers.add("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+    return response
+
 @app.route("/", methods=["GET"])
 def home():
     return jsonify({
@@ -25,24 +32,25 @@ def random_wijk():
         "result": synthData
     }), 200
 
-@app.route("/get-synth", methods=["POST"])
+@app.route("/get-synth", methods=["POST", "OPTIONS"])
 def handle_post():
-    data = request.get_json(silent=True)
+    if request.method == "OPTIONS":
+        return "", 204
+
+    data = request.get_json(silent=True) or {}
     print("Received JSON:", data)
-    
-    if not data:
-        return jsonify({"error": "No JSON received"}), 400
 
-    wijk_code = data.get("wijk_code")
-    if not wijk_code:
-        return jsonify({"error": "Missing wijk_code in JSON body"}), 400
+    buurt_code = data.get("buurt_code") or data.get("wijk_code")
+    if not buurt_code:
+        return jsonify({"error": "Missing buurt_code or wijk_code in JSON body"}), 400
 
-    result = get_macro_data(wijk_code)
+    macro = get_macro_data(buurt_code)
+    synthData = synthesise(macro)
 
     response = {
-        "received": data,
+        "received": {"buurt_code": buurt_code},
         "message": "JSON processed successfully",
-        "result": result
+        "result": synthData
     }
 
     return jsonify(response), 200
