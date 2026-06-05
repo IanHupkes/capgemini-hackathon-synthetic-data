@@ -37,6 +37,8 @@ from quality_report import (  # noqa: E402
     _chi_square,
     _kl_divergence,
     _js_divergence,
+    _project_root,
+    generate_quality_report,
 )
 from seeds import DEFAULT_SEED_TYPE  # noqa: E402
 
@@ -136,9 +138,10 @@ def _synthesise_nd(
         "js_divergence": _js_divergence(ipf_result["fitted_table"], counts),
     }
 
-    #generate_quality_report(ipf_result["fitted_table"], out_md=None, out_dir=None, variables_yaml=None)
+    row_dim = used_dims[0]
+    col_dim = used_dims[1] if len(used_dims) > 1 else used_dims[0]
 
-    return {
+    result = {
         "status": "success",
         "mode": "nd",
         "area": area,
@@ -153,6 +156,18 @@ def _synthesise_nd(
         "quality_report": gen_quality_report,
         "csv_path": str(csv_path),
     }
+
+    here = Path(__file__).resolve().parent
+    report_path = generate_quality_report(
+        result,
+        out_md=here / "quality-report.md",
+        out_dir=here / "quality-report-artifacts",
+        variables_yaml=_project_root() / "data" / "variables.yaml",
+        source_macro=macro,
+    )
+    result["quality_report_path"] = str(report_path)
+
+    return result
 
 
 def synthesise(
