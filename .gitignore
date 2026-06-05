@@ -65,3 +65,5 @@ data/synthetic/*
 *.tmp
 
 .obsidian
+
+solution/flask/service/output/*
