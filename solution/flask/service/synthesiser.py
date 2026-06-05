@@ -13,8 +13,10 @@ as a second CLI argument (`2d` or `nd`); it defaults to `nd`.
 
 from __future__ import annotations
 
+import csv
 import json
 import sys
+from datetime import datetime
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -35,14 +37,28 @@ from quality_report import (  # noqa: E402
     _chi_square,
     _kl_divergence,
     _js_divergence,
-    generate_quality_report,
-
 )
 from seeds import DEFAULT_SEED_TYPE  # noqa: E402
 
 
 
 DEFAULT_MODE = "nd"
+
+_OUTPUT_DIR = Path(__file__).resolve().parent / "output"
+
+
+def _save_population_csv(population: list[dict], buurt: str, mode: str) -> Path:
+    """Write *population* to a timestamped CSV file and return its path."""
+    _OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    timestamp = datetime.now().strftime("%Y%m%dT%H%M%S")
+    path = _OUTPUT_DIR / f"{buurt}_{mode}_{timestamp}.csv"
+    if population:
+        fieldnames = list(population[0].keys())
+        with path.open("w", newline="", encoding="utf-8") as fh:
+            writer = csv.DictWriter(fh, fieldnames=fieldnames)
+            writer.writeheader()
+            writer.writerows(population)
+    return path
 
 
 def _synthesise_2d(
@@ -65,10 +81,12 @@ def _synthesise_2d(
         seed=seed,
     )
     counts = summarise_population_nd(gen_result["population"], dims)
+    csv_path = _save_population_csv(gen_result["population"], buurt, "2d")
 
     return {
         "status": "success",
         "mode": "2d",
+        "csv_path": str(csv_path),
         "area": area,
         "dims": dims,
         "n": gen_result["n"],
@@ -103,6 +121,7 @@ def _synthesise_nd(
         reference_marginal=reference_marginal,
         seed=seed,
     )
+    csv_path = _save_population_csv(gen_result["population"], buurt, "nd")
 
     counts = summarise_population_nd(gen_result["population"], used_dims)
     gen_quality_report = {
@@ -131,7 +150,8 @@ def _synthesise_nd(
         "fitted_table": {"|".join(k): v for k, v in ipf_result["fitted_table"].items()},
         "cell_counts": {"|".join(k): v for k, v in counts.items()},
         "population": gen_result["population"],
-        "quality_report": gen_quality_report
+        "quality_report": gen_quality_report,
+        "csv_path": str(csv_path),
     }
 
 

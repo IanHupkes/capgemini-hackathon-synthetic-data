@@ -2,13 +2,10 @@
 set -euo pipefail
 
 HOST="${1:-http://localhost:5001}"
-WIJK_CODE="${2:-BU0363}"
 
-echo "Triggering synthesizer pipeline for wijk_code='$WIJK_CODE' at $HOST..."
+echo "Triggering /random-wijk at $HOST..."
 
-RESPONSE=$(curl -s -w "\n__STATUS__%{http_code}" -X POST "$HOST/get-synth" \
-  -H "Content-Type: application/json" \
-  -d "{\"wijk_code\": \"$WIJK_CODE\"}")
+RESPONSE=$(curl -s -w "\n__STATUS__%{http_code}" "$HOST/random-wijk")
 
 BODY="${RESPONSE%__STATUS__*}"
 STATUS="${RESPONSE##*__STATUS__}"

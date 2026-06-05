@@ -1,6 +1,6 @@
 """Generate a quality report from `generation_pipeline.py` output.
 
-This script maps the report sections from `docs/kwaliteitsrapport-template.md`
+This script maps the report sections from `docs/kwaliteitsrapport.md`
 to concrete calculations and artefacts (metrics, markdown tables, and optional
 plots).
 
@@ -216,6 +216,8 @@ def _plot_heatmap(
 
 def _load_variable_catalogue(variables_yaml_path: Path) -> list[dict[str, str]]:
     # Lightweight parser for the known format in data/variables.yaml.
+    if not variables_yaml_path.exists():
+        return []
     rows: list[dict[str, str]] = []
     current: dict[str, str] | None = None
     for raw in variables_yaml_path.read_text(encoding="utf-8").splitlines():
@@ -291,6 +293,15 @@ def _git_commit(root: Path) -> str:
         return "unknown"
 
 
+def _project_root() -> Path:
+    # Use non-resolved path to preserve repository folder in symlinked setups.
+    here = Path(__file__).absolute().parent
+    for p in [here, *here.parents]:
+        if p.name == "capgemini-hackathon-synthetic-data":
+            return p
+    return here.parents[3]
+
+
 def _build_report_markdown(
         *,
         area_code: str,
@@ -337,7 +348,7 @@ def _build_report_markdown(
     lines.append("")
 
     lines.append("## 4. Cross-domain consistency (S1)")
-    lines.append("| Cross-tab | KL(P||Q) | Jensen-Shannon | Chi-square |")
+    lines.append("| Cross\\-tab | KL\\(P\\|\\|Q\\) | Jensen\\-Shannon | Chi\\-square |")
     lines.append("|---|---:|---:|---:|")
     lines.extend(cross_domain_rows)
     lines.append("")
@@ -368,17 +379,24 @@ def _build_report_markdown(
 def generate_quality_report(
         generation_output: Mapping[str, Any],
         *,
-        out_md: Path,
-        out_dir: Path,
-        variables_yaml: Path,
+        out_md: Path | None = None,
+        out_dir: Path | None = None,
+        variables_yaml: Path | None = None,
         source_macro: Mapping[str, Any] | None = None,
         reference_joint: Mapping[str, Any] | None = None,
         spatial_data: Mapping[str, Any] | None = None,
         rwzi_data: Mapping[str, Any] | None = None,
-        invocation: str = "python3 quality_report.py ...",
+        invocation: str = "python3 synthesiser.py ...",
         runtime_seconds: float = 0.0,
         peak_memory_mb: float = 0.0,
 ) -> Path:
+    here = Path(__file__).resolve().parent
+    if out_md is None:
+        out_md = here / "quality-report.md"
+    if out_dir is None:
+        out_dir = here / "quality-report-artifacts"
+    if variables_yaml is None:
+        variables_yaml = _project_root() / "data" / "variables.yaml"
     out_dir.mkdir(parents=True, exist_ok=True)
 
     row_dim = str(generation_output.get("row_dim", "leeftijd"))
@@ -407,6 +425,8 @@ def generate_quality_report(
         priority = var.get("priority", "")
         table_id = var.get("table_id", "")
         variable_rows.append(f"| {name} (`{vid}`) | {priority} | {present} | {table_id} |")
+    if not variable_rows:
+        variable_rows.append("| n/a | n/a | n/a | variables.yaml not found |")
 
     # Section 3: marginal fit metrics and plot.
     marginal_metric_rows: list[MetricRow] = []
@@ -570,7 +590,7 @@ def generate_quality_report(
     if not limitation_lines:
         limitation_lines.append("- No major limitations detected for the provided inputs.")
 
-    commit = _git_commit(Path(__file__).resolve().parents[4])
+    commit = _git_commit(_project_root())
     md = _build_report_markdown(
         area_code=area_code,
         n=n,
@@ -592,8 +612,8 @@ def generate_quality_report(
 
 
 def _parse_args() -> argparse.Namespace:
-    here = Path(__file__).resolve().parent
-    root = here.parents[3]
+    here = Path(__file__).absolute().parent
+    root = _project_root()
 
     parser = argparse.ArgumentParser(description="Generate quality report from synthetic population output")
     parser.add_argument("--input-json", type=Path, required=True, help="JSON output from synthesiser.py")
