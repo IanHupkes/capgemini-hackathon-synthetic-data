@@ -13,7 +13,7 @@ def home():
 
 @app.route("/random-wijk", methods=["GET"])
 def random_wijk():
-    wijk_code = random.choice(["BU001", "BU002", "BU003", "BU004", "BU005"])
+    wijk_code = "BU001"
     
     macroData = get_macro_data(wijk_code)
 

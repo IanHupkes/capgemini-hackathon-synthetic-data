@@ -54,15 +54,4 @@ def get_macro_data(wijk_code: str):
         }
     }
 
-    script_path = Path(__file__).resolve().parent / "synthesiser.py"
-    completed = subprocess.run(
-        [sys.executable, str(script_path), json.dumps(macro)],
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-
-    if completed.returncode != 0:
-        raise RuntimeError(completed.stderr.strip() or completed.stdout.strip() or "Synthesiser failed")
-
-    return json.loads(completed.stdout)
+    return macro
