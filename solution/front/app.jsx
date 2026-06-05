@@ -35,6 +35,7 @@ function App() {
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
   const [screen, setScreen] = useState("select");
   const [result, setResult] = useState(null);
+  const [pending, setPending] = useState(false);
   const [apiData, setApiData] = useState(readStoredApiData);
   const [cfg, setCfg] = useState({
     personaId: "lena",
@@ -93,29 +94,35 @@ function App() {
     };
   }
 
-  async function runGenerate() {
-    let nextApiData = null;
-    if (cfg.buurt) {
-      try {
-        const response = await fetch("http://127.0.0.1:5000/get-synth", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ buurt_code: cfg.buurt }),
-        });
-        nextApiData = await response.json();
-        setApiData(nextApiData);
-        localStorage.setItem(API_DATA_KEY, JSON.stringify(nextApiData));
-        console.log("POST /get-synth response", nextApiData);
-      } catch (error) {
-        console.error("POST /get-synth failed", error);
-      }
-    }
-
-    const nextSampleSize = typeof nextApiData?.result?.n === "number" ? nextApiData.result.n : cfg.sampleSize;
-    setCfg((prev) => ({ ...prev, sampleSize: nextSampleSize }));
-    const generated = generate(cfg.buurt, cfg.vars, nextSampleSize);
-    setResult(withActualQuality(generated, nextApiData));
+  function runGenerate() {
+    setResult(null);
+    setPending(true);
     go("pipeline");
+
+    (async () => {
+      let nextApiData = null;
+      if (cfg.buurt) {
+        try {
+          const response = await fetch("http://127.0.0.1:5000/get-synth", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ buurt_code: cfg.buurt }),
+          });
+          nextApiData = await response.json();
+          setApiData(nextApiData);
+          localStorage.setItem(API_DATA_KEY, JSON.stringify(nextApiData));
+          console.log("POST /get-synth response", nextApiData);
+        } catch (error) {
+          console.error("POST /get-synth failed", error);
+        }
+      }
+
+      const nextSampleSize = typeof nextApiData?.result?.n === "number" ? nextApiData.result.n : cfg.sampleSize;
+      setCfg((prev) => ({ ...prev, sampleSize: nextSampleSize }));
+      const generated = generate(cfg.buurt, cfg.vars, nextSampleSize);
+      setResult(withActualQuality(generated, nextApiData));
+      setPending(false);
+    })();
   }
 
   function restart() {
@@ -134,7 +141,7 @@ function App() {
 
       <div key={screen} style={app.fade}>
         {screen === "select" && <SelectScreen t={tr} cfg={cfg} setCfg={setCfg} onGenerate={runGenerate} />}
-        {screen === "pipeline" && <PipelineScreen t={tr} cfg={cfg} sampleSize={result?.sampleSize || cfg.sampleSize} onDone={() => go("dashboard")} />}
+        {screen === "pipeline" && <PipelineScreen t={tr} cfg={cfg} sampleSize={result?.sampleSize || cfg.sampleSize} pending={pending} onDone={() => go("dashboard")} />}
         {screen === "dashboard" && result && <DashboardScreen t={tr} result={result} cfg={cfg} density={t.density}
           onReport={() => go("report")} onDownload={() => go("download")} onNew={restart} />}
         {screen === "report" && result && <ReportScreen t={tr} result={result} cfg={cfg}
