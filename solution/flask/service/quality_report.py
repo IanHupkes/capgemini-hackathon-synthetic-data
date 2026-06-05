@@ -260,6 +260,10 @@ def _present_variables(
         present.add("woningtype")
     if "opleidingsniveau" in dims:
         present.add("opleidingsniveau")
+    if "arbeidsmarktpositie" in dims:
+        present.add("arbeidsmarktpositie")
+    if "achtergrond" in dims:
+        present.add("achtergrond")
 
     if has_rwzi:
         present.update(
