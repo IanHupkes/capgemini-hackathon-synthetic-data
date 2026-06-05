@@ -67,7 +67,8 @@ function App() {
   function withActualQuality(generated, apiData) {
     const qr = apiData?.result?.quality_report || null;
     const area = apiData?.result?.area || null;
-    const realSampleSize = typeof apiData?.result?.n === "number" ? apiData.result.n : generated?.sampleSize || 0;
+    const realPopulation = Number(apiData?.result?.population ?? apiData?.result?.n ?? generated?.sampleSize ?? 0) || 0;
+    const realSampleSize = realPopulation || (typeof apiData?.result?.n === "number" ? apiData.result.n : generated?.sampleSize || 0);
     const realHouseholds = Math.max(1, Math.round(realSampleSize / (generated?.occupancy || 1)));
 
     return {
@@ -78,7 +79,8 @@ function App() {
       generatedAt: generated?.generatedAt || new Date(),
       loc: {
         ...generated?.loc,
-        buurt: generated?.loc?.buurt || (area ? { code: area.code, naam: area.name } : null),
+        gemeente: generated?.loc?.gemeente || (area ? { code: area.code, naam: area.name } : null),
+        buurt: area ? { code: area.code, naam: area.name } : (generated?.loc?.buurt || null),
       },
       quality: qr
         ? {
@@ -94,13 +96,22 @@ function App() {
   }
 
   async function runGenerate() {
+    const initialGenerated = generate(cfg.buurt, cfg.vars, cfg.sampleSize);
+    setResult(withActualQuality(initialGenerated, null));
+    go("pipeline");
+
     let nextApiData = null;
     if (cfg.buurt) {
+      const loc = findBuurt(cfg.buurt);
       try {
         const response = await fetch("http://127.0.0.1:5000/get-synth", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ buurt_code: cfg.buurt }),
+          body: JSON.stringify({
+            buurt_code: cfg.buurt,
+            wijk_code: loc?.wijk?.code || cfg.buurt,
+            gemeente_code: loc?.gemeente?.code || cfg.buurt,
+          }),
         });
         nextApiData = await response.json();
         setApiData(nextApiData);
@@ -115,7 +126,7 @@ function App() {
     setCfg((prev) => ({ ...prev, sampleSize: nextSampleSize }));
     const generated = generate(cfg.buurt, cfg.vars, nextSampleSize);
     setResult(withActualQuality(generated, nextApiData));
-    go("pipeline");
+    go("dashboard");
   }
 
   function restart() {

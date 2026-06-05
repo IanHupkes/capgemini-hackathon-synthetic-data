@@ -1,46 +1,46 @@
 {
   "area": {
-    "type": "Gemeente",
-    "code": "GM0050",
-    "name": "Zeewolde"
+    "type": "Buurt",
+    "code": "BU05991051",
+    "name": "Nieuwe Westen"
   },
-  "population": 24291,
+  "population": 200,
   "marginals": {
     "leeftijd": {
-      "0-14": 3936,
-      "15-24": 2974,
-      "25-44": 6460,
-      "45-64": 6928,
-      "65+": 3993
+      "0-14": 10,
+      "15-24": 20,
+      "25-44": 30,
+      "45-64": 40,
+      "65+": 100
     },
     "huishoudgrootte": {
-      "1": 3459,
-      "2": 3264,
-      "3+": 3790
+      "1": 0,
+      "2": 0,
+      "3+": 0
     },
     "woningtype": {
-      "appartement": 19.0,
-      "rijtjeshuis": 62.0,
-      "vrijstaand": 19.0
+      "appartement": 0,
+      "rijtjeshuis": 0,
+      "vrijstaand": 0
     },
     "opleidingsniveau": {
-      "laag": 6356.838153209791,
-      "midden": 8527.925310520686,
-      "hoog": 9406.236536269522
+      "laag": 66.66666666666666,
+      "midden": 66.66666666666666,
+      "hoog": 66.66666666666666
     },
     "arbeidsmarktpositie": {
       "werkend": 0,
-      "werkloos": 24291,
+      "werkloos": 200,
       "arbeidsongeschikt": 0
     },
     "achtergrond": {
-      "niet-westers": 2907,
-      "westers": 21384
+      "niet-westers": 0,
+      "westers": 0
     }
   },
   "scalars": {
     "gemiddeld_inkomen_huishouden": 0.0,
-    "bezettingsgraad_woning": 2.3,
-    "stedelijkheidsgraad": 4
+    "bezettingsgraad_woning": 0,
+    "stedelijkheidsgraad": 0
   }
 }

@@ -28,9 +28,22 @@ def strip_strings(obj):
 
 
 def fetch_cbs_data(wijk_code: str):
-    df_kerncijfers = pd.DataFrame(cbsodata.get_data(KERNCIJFERS_WIJKEN_BUURTEN, filters="substring(WijkenEnBuurten,2,4) eq '0050'"))
+    if not wijk_code:
+        raise ValueError("Missing wijk_code")
+
+    df_kerncijfers = pd.DataFrame(cbsodata.get_data(KERNCIJFERS_WIJKEN_BUURTEN))
     print(f"Fetched CBS data for wijk {wijk_code}")
-    wijk_row = df_kerncijfers.iloc[0]
+
+    normalized_code = str(wijk_code).strip().upper()
+    df_kerncijfers = df_kerncijfers.copy()
+    df_kerncijfers["__code__"] = df_kerncijfers["Codering_3"].astype(str).str.strip().str.upper()
+    df_kerncijfers["__name__"] = df_kerncijfers["WijkenEnBuurten"].astype(str).str.strip().str.upper()
+
+    matches = df_kerncijfers[(df_kerncijfers["__code__"] == normalized_code) | (df_kerncijfers["__name__"] == normalized_code)]
+    if matches.empty:
+        raise ValueError(f"No CBS row found for region code/name '{wijk_code}'")
+
+    wijk_row = matches.iloc[0]
     df_onderwijs = pd.DataFrame(cbsodata.get_data(ONDERWIJS_NIVEAU, filters="Perioden eq '2021KW01'"))
     print("Fetched CBS data for onderwijs niveau")
     df_onderwijs_2021 = df_onderwijs[

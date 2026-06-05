@@ -40,15 +40,17 @@ def handle_post():
     data = request.get_json(silent=True) or {}
     print("Received JSON:", data)
 
-    buurt_code = data.get("buurt_code") or data.get("wijk_code")
-    if not buurt_code:
+    buurt_code = data.get("buurt_code")
+    wijk_code = data.get("wijk_code") or data.get("gemeente_code")
+    region_code = wijk_code or buurt_code
+    if not region_code:
         return jsonify({"error": "Missing buurt_code or wijk_code in JSON body"}), 400
 
-    macro = get_macro_data(buurt_code)
+    macro = get_macro_data(region_code)
     synthData = synthesise(macro)
 
     response = {
-        "received": {"buurt_code": buurt_code},
+        "received": {"buurt_code": buurt_code, "wijk_code": wijk_code},
         "message": "JSON processed successfully",
         "result": synthData
     }
