@@ -134,7 +134,7 @@ function App() {
 
       <div key={screen} style={app.fade}>
         {screen === "select" && <SelectScreen t={tr} cfg={cfg} setCfg={setCfg} onGenerate={runGenerate} />}
-        {screen === "pipeline" && <PipelineScreen t={tr} cfg={cfg} onDone={() => go("dashboard")} />}
+        {screen === "pipeline" && <PipelineScreen t={tr} cfg={cfg} sampleSize={result?.sampleSize || cfg.sampleSize} onDone={() => go("dashboard")} />}
         {screen === "dashboard" && result && <DashboardScreen t={tr} result={result} cfg={cfg} density={t.density}
           onReport={() => go("report")} onDownload={() => go("download")} onNew={restart} />}
         {screen === "report" && result && <ReportScreen t={tr} result={result} cfg={cfg}

@@ -1,6 +1,6 @@
 // screen-pipeline.jsx — animated AI pipeline progress.
 
-function PipelineScreen({ t, cfg, onDone }) {
+function PipelineScreen({ t, cfg, sampleSize, onDone }) {
   const { useState, useEffect, useRef } = React;
   const [active, setActive] = useState(0);     // index of running step
   const [done, setDone] = useState(false);
@@ -31,7 +31,7 @@ function PipelineScreen({ t, cfg, onDone }) {
           {!done ? <span style={pipe.spinner} /> : <span style={pipe.doneMark}><Icon name="check" size={34} stroke={3} /></span>}
         </div>
         <h1 style={pipe.title}>{done ? (t.lang === "en" ? "Synthetic population ready" : "Synthetische populatie gereed") : t.pipeTitle}</h1>
-        <p style={pipe.sub}>{buurt ? `${buurt.naam} · ${cfg.sampleSize.toLocaleString("nl-NL")} ${t.lang === "en" ? "individuals" : "personen"}` : t.pipeSub}</p>
+        <p style={pipe.sub}>{buurt ? `${buurt.naam} · ${(sampleSize || cfg.sampleSize || 0).toLocaleString("nl-NL")} ${t.lang === "en" ? "individuals" : "personen"}` : t.pipeSub}</p>
 
         <div style={pipe.progressTrack} role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-label={t.pipeTitle}>
           <div style={{ ...pipe.progressFill, width: `${pct}%` }} />

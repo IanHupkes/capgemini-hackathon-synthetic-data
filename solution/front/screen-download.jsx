@@ -5,7 +5,8 @@ function DownloadScreen({ t, result, cfg, onBack }) {
   const [downloaded, setDownloaded] = useState(false);
 
   const buurt = result.loc.buurt;
-  const fileBase = `synth_${buurt.code}_${cfg.sampleSize}`;
+  const sampleSize = result.sampleSize || result.inw || cfg.sampleSize || 0;
+  const fileBase = `synth_${buurt.code}_${sampleSize}`;
   const fileName = `${fileBase}.csv`;
   const cols = ["persoon_id", "leeftijd", "geslacht", "huishoudtype", "woningtype", "hoogbouw", "mobiliteit", "gevaccineerd", "buurtcode"];
 
@@ -32,7 +33,7 @@ function DownloadScreen({ t, result, cfg, onBack }) {
       <div style={dl.grid}>
         <div style={dl.left}>
           <Card>
-            <CardHeader title={t.dlPreview} sub={`${cols.length} ${t.lang === "en" ? "columns" : "kolommen"} · ${cfg.sampleSize.toLocaleString("nl-NL")} ${t.dlRows}`} />
+            <CardHeader title={t.dlPreview} sub={`${cols.length} ${t.lang === "en" ? "columns" : "kolommen"} · ${sampleSize.toLocaleString("nl-NL")} ${t.dlRows}`} />
             <div style={dl.tableWrap} tabIndex={0} role="region" aria-label={t.dlPreview}>
               <table style={dl.table}>
                 <thead>
