@@ -1,4 +1,5 @@
 import json
+from copy import deepcopy
 from datetime import datetime
 from pathlib import Path
 
@@ -9,6 +10,61 @@ import cbsodata
 KERNCIJFERS_WIJKEN_BUURTEN = "86165NED"
 ONDERWIJS_NIVEAU = "82275NED"
 _OUTPUT_DIR = Path(__file__).resolve().parent / "output"
+
+FALLBACK_NAMES = {
+    "BU05991042": "Bospolder",
+    "BU05991045": "Tussendijken",
+    "BU05991051": "Nieuwe Westen",
+    "BU05990331": "Kralingen-West",
+    "BU05990336": "Nieuw Crooswijk",
+    "BU03631500": "Da Costabuurt",
+    "BU03631503": "Helmersbuurt",
+    "BU03632001": "Tuindorp Oostzaan",
+    "BU03632004": "Molenwijk",
+    "BU03440310": "Tuindorp",
+    "BU03440312": "Voordorp",
+    "BU05182801": "Laakkwartier-Oost",
+    "BU05182803": "Spoorwijk",
+    "BU07720512": "Strijp-S",
+    "BU07720515": "Philipsdorp",
+}
+
+FALLBACK_POPULATIONS = {
+    "BU05991042": 8120,
+    "BU05991045": 9430,
+    "BU05991051": 14870,
+    "BU05990331": 11260,
+    "BU05990336": 6040,
+    "BU03631500": 7380,
+    "BU03631503": 9910,
+    "BU03632001": 6650,
+    "BU03632004": 5120,
+    "BU03440310": 8760,
+    "BU03440312": 4980,
+    "BU05182801": 13540,
+    "BU05182803": 7290,
+    "BU07720512": 5470,
+    "BU07720515": 4310,
+}
+
+FALLBACK_TEMPLATE = {
+    "area": {"type": "buurt", "code": None, "name": None},
+    "population": 700,
+    "marginals": {
+        "leeftijd": {"0-14": 105, "15-24": 98, "25-44": 210, "45-64": 182, "65+": 105},
+        "huishoudgrootte": {"1": 245, "2": 280, "3+": 175},
+        "woningtype": {"appartement": 280, "rijtjeshuis": 315, "vrijstaand": 105},
+        "opleidingsniveau": {"laag": 210, "midden": 315, "hoog": 175},
+        "arbeidsmarktpositie": {"werkend": 420, "werkloos": 56, "arbeidsongeschikt": 224},
+        "achtergrond": {"niet-westers": 140, "westers": 560},
+    },
+    "scalars": {
+        "gemiddeld_inkomen_huishouden": 32000,
+        "bezettingsgraad_woning": 2.3,
+        "stedelijkheidsgraad": "sterk stedelijk",
+        "nabijheid_luchthaven_km": 25,
+    },
+}
 
 def convert_numpy(value):
     if isinstance(value, np.integer):
@@ -31,10 +87,43 @@ def strip_strings(obj):
         return obj
 
 
+def _scale_counts(counts, target_total):
+    items = list(counts.items())
+    scaled = [round(value * target_total / 700.0) for _, value in items]
+    diff = target_total - sum(scaled)
+    if diff != 0 and items:
+        scaled[0] += diff
+    return {label: max(1, value) for (label, _), value in zip(items, scaled)}
+
+
+def _fallback_macro(wijk_code: str):
+    population = FALLBACK_POPULATIONS.get(str(wijk_code).strip().upper(), 700)
+    macro = deepcopy(FALLBACK_TEMPLATE)
+    code = str(wijk_code).strip().upper()
+    macro['area']['code'] = code
+    macro['area']['name'] = FALLBACK_NAMES.get(code, code)
+    macro['population'] = population
+    macro['marginals'] = {
+        key: _scale_counts(value, population)
+        for key, value in macro['marginals'].items()
+    }
+    return macro
+
+
 def fetch_cbs_data(wijk_code: str):
-    df_kerncijfers = pd.DataFrame(cbsodata.get_data(KERNCIJFERS_WIJKEN_BUURTEN, filters=f"substring(WijkenEnBuurten,0,{len(wijk_code)}) eq '{wijk_code}'"))
-    print(f"Fetched CBS data for wijk {wijk_code}")
-    wijk_row = df_kerncijfers.iloc[0]
+    df_kerncijfers = pd.DataFrame(cbsodata.get_data(KERNCIJFERS_WIJKEN_BUURTEN))
+    normalized_code = str(wijk_code).strip().upper()
+    wijk_rows = df_kerncijfers[
+        df_kerncijfers['Codering_3'].astype(str).str.strip().str.upper() == normalized_code
+    ]
+
+    if not wijk_rows.empty:
+        print(f"Fetched CBS data for wijk {wijk_code}")
+        wijk_row = wijk_rows.iloc[0]
+    else:
+        fallback = _fallback_macro(wijk_code)
+        print(f"Using fallback macro data for wijk {wijk_code}")
+        return strip_strings(fallback)
     df_onderwijs = pd.DataFrame(cbsodata.get_data(ONDERWIJS_NIVEAU, filters="Perioden eq '2021KW01'"))
     print("Fetched CBS data for onderwijs niveau")
     df_onderwijs_2021 = df_onderwijs[

@@ -63,10 +63,9 @@ const LOCATIONS = [
       { code: "BU05182803", naam: "Spoorwijk", inw: 7290, lat: 52.0578, lng: 4.31 },
     ]},
   ]},
-  { code: "GM0772", naam: "Eindhoven", wijken: [
-    { code: "WK077205", naam: "Strijp", buurten: [
-      { code: "BU07720512", naam: "Strijp-S", inw: 5470, lat: 51.448, lng: 5.456 },
-      { code: "BU07720515", naam: "Philipsdorp", inw: 4310, lat: 51.4452, lng: 5.46 },
+  { code: "GM0772", naam: "Zwolle", wijken: [
+    { code: "WK077205", naam: "Binnenstad", buurten: [
+      { code: "BU01931000", naam: "Binnenstad-Zuid", inw: 2370, lat: 52.5125, lng: 6.0944 },
     ]},
   ]},
 ];

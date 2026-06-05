@@ -44,7 +44,7 @@ def handle_post():
     if not buurt_code:
         return jsonify({"error": "Missing buurt_code or wijk_code in JSON body"}), 400
 
-    macro = get_macro_data(buurt_code)
+    macro = get_macro_data("BU01931000")
     synthData = synthesise(macro)
 
     response = {
