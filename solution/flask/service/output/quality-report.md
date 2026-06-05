@@ -1,6 +1,6 @@
 # Quality report
 
-## 1. Coverage
+## 1. Coverage 
 - **Region(s):** buurt `BU00140000`
 - **Number of synthetic individuals:** 3842
 - **Number of synthetic households:** n/a (not modelled in current generator)
