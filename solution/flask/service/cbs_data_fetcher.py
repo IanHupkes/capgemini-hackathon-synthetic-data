@@ -28,9 +28,11 @@ def strip_strings(obj):
 
 
 def fetch_cbs_data(wijk_code: str):
-    df_kerncijfers = pd.DataFrame(cbsodata.get_data(KERNCIJFERS_WIJKEN_BUURTEN))
+    df_kerncijfers = pd.DataFrame(cbsodata.get_data(KERNCIJFERS_WIJKEN_BUURTEN, filters="substring(WijkenEnBuurten,2,4) eq '0050'"))
+    print(f"Fetched CBS data for wijk {wijk_code}")
     wijk_row = df_kerncijfers[df_kerncijfers["Codering_3"].str.contains(wijk_code)].iloc[0]
-    df_onderwijs = pd.DataFrame(cbsodata.get_data(ONDERWIJS_NIVEAU))
+    df_onderwijs = pd.DataFrame(cbsodata.get_data(ONDERWIJS_NIVEAU, filters="Perioden eq '2021KW01'"))
+    print("Fetched CBS data for onderwijs niveau")
     df_onderwijs_2021 = df_onderwijs[
         df_onderwijs['Perioden'].str.contains('2021 1e kwartaal') &
         ~df_onderwijs['Leeftijd'].str.contains('15', na=False) &
