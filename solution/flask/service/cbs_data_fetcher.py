@@ -41,8 +41,13 @@ def fetch_cbs_data(wijk_code: str):
           df_onderwijs['HoogstBehaaldOnderwijsniveau'].str.contains('onbekend'))
         ]
 
-    hoogst_behaalde_opleiding = df_onderwijs_2021.groupby(df_onderwijs_2021['HoogstBehaaldOnderwijsniveau'].str[0])[
-                                    'Bevolking_1'].sum() * 1000
+    hoogst_behaalde_opleiding_raw = df_onderwijs_2021.groupby(df_onderwijs_2021['HoogstBehaaldOnderwijsniveau'].str[0])[
+                                        'Bevolking_1'].sum() * 1000
+    # Normalize national education distribution to wijk population so all marginals
+    # are on the same (wijk-level) scale; avoids IPF inflating n to national totals.
+    pop = float(wijk_row['AantalInwoners_5'] or 1)
+    edu_total = float(hoogst_behaalde_opleiding_raw.sum()) or 1.0
+    hoogst_behaalde_opleiding = hoogst_behaalde_opleiding_raw / edu_total * pop
 
     macro_json = {
         "area": {
@@ -66,8 +71,8 @@ def fetch_cbs_data(wijk_code: str):
             },
             "woningtype": {
                 "appartement": wijk_row['PercentageMeergezinswoning_45'] or 0,
-                "rijtjeshuis": wijk_row['PercentageTussenwoningEengezins_41'] or 0 + wijk_row['PercentageHoekwoningEengezins_42'] or 0,
-                "vrijstaand": wijk_row['PercentageVrijstaandeWoningEengezins_44'] or 0 + wijk_row['PercentageTweeOnderEenKapWoningEe_43'] or 0
+                "rijtjeshuis": (wijk_row['PercentageTussenwoningEengezins_41'] or 0) + (wijk_row['PercentageHoekwoningEengezins_42'] or 0),
+                "vrijstaand": (wijk_row['PercentageVrijstaandeWoningEengezins_44'] or 0) + (wijk_row['PercentageTweeOnderEenKapWoningEe_43'] or 0)
             },
             "opleidingsniveau": {
                 "laag": hoogst_behaalde_opleiding.iloc[0],
@@ -76,8 +81,7 @@ def fetch_cbs_data(wijk_code: str):
             },
             "arbeidsmarktpositie": {
                 "werkend": wijk_row['WerkzameBeroepsbevolking_70'] or 0,
-                "werkloos": wijk_row['AantalInwoners_5'] - (
-                            wijk_row['WerkzameBeroepsbevolking_70'] or wijk_row['AantalInwoners_5']),
+                "werkloos": (wijk_row['AantalInwoners_5'] or 0) - (wijk_row['WerkzameBeroepsbevolking_70'] or 0),
                 "arbeidsongeschikt": wijk_row['PersonenPerSoortUitkeringAO_88'] or 0
             },
             "achtergrond": {
@@ -86,8 +90,7 @@ def fetch_cbs_data(wijk_code: str):
             }
         },
         "scalars": {
-            "gemiddeld_inkomen_huishouden": wijk_row['GemiddeldeHuishoudensgrootte_33'] or 0.0 * wijk_row[
-                'GemiddeldInkomenPerInwoner_78'] or 0.0,
+            "gemiddeld_inkomen_huishouden": (wijk_row['GemiddeldeHuishoudensgrootte_33'] or 0.0) * (wijk_row['GemiddeldInkomenPerInwoner_78'] or 0.0),
             "bezettingsgraad_woning": wijk_row['GemiddeldeHuishoudensgrootte_33'],
             "stedelijkheidsgraad": wijk_row['MateVanStedelijkheid_120']
         }
