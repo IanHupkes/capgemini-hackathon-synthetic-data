@@ -1,10 +1,14 @@
 import json
+from datetime import datetime
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 import cbsodata
 
 KERNCIJFERS_WIJKEN_BUURTEN = "86165NED"
 ONDERWIJS_NIVEAU = "82275NED"
+_OUTPUT_DIR = Path(__file__).resolve().parent / "output"
 
 def convert_numpy(value):
     if isinstance(value, np.integer):
@@ -28,9 +32,10 @@ def strip_strings(obj):
 
 
 def fetch_cbs_data(wijk_code: str):
-    df_kerncijfers = pd.DataFrame(cbsodata.get_data(KERNCIJFERS_WIJKEN_BUURTEN, filters="substring(WijkenEnBuurten,2,4) eq '0050'"))
+    df_kerncijfers = pd.DataFrame(cbsodata.get_data(KERNCIJFERS_WIJKEN_BUURTEN, filters=f"substring(WijkenEnBuurten,0,{len(wijk_code)}) eq '{wijk_code}'"))
     print(f"Fetched CBS data for wijk {wijk_code}")
     wijk_row = df_kerncijfers.iloc[0]
+    print(wijk_row)
     df_onderwijs = pd.DataFrame(cbsodata.get_data(ONDERWIJS_NIVEAU, filters="Perioden eq '2021KW01'"))
     print("Fetched CBS data for onderwijs niveau")
     df_onderwijs_2021 = df_onderwijs[
@@ -98,9 +103,13 @@ def fetch_cbs_data(wijk_code: str):
 
     cleaned_data = strip_strings(macro_json)
 
-    with open("macro_data.json", "w", encoding="utf-8") as file:
+    _OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    timestamp = datetime.now().strftime("%Y%m%dT%H%M%S")
+    path = _OUTPUT_DIR / f"{wijk_code}_macro_{timestamp}.json"
+    with open(path, "w", encoding="utf-8") as file:
         json.dump(cleaned_data, file, indent=2, default=convert_numpy)
     return cleaned_data
 
 if __name__ == "__main__":
-    fetch_cbs_data('GM0518')
+    # fetch_cbs_data('GM0518')
+    fetch_cbs_data('BU03440312')
