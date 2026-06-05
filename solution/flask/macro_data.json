@@ -1,0 +1,46 @@
+{
+  "area": {
+    "type": "Gemeente",
+    "code": "GM0050",
+    "name": "Zeewolde"
+  },
+  "population": 24291,
+  "marginals": {
+    "leeftijd": {
+      "0-14": 3936,
+      "15-24": 2974,
+      "25-44": 6460,
+      "45-64": 6928,
+      "65+": 3993
+    },
+    "huishoudgrootte": {
+      "1": 3459,
+      "2": 3264,
+      "3+": 3790
+    },
+    "woningtype": {
+      "appartement": 19.0,
+      "rijtjeshuis": 62.0,
+      "vrijstaand": 19.0
+    },
+    "opleidingsniveau": {
+      "laag": 6356.838153209791,
+      "midden": 8527.925310520686,
+      "hoog": 9406.236536269522
+    },
+    "arbeidsmarktpositie": {
+      "werkend": 0,
+      "werkloos": 24291,
+      "arbeidsongeschikt": 0
+    },
+    "achtergrond": {
+      "niet-westers": 2907,
+      "westers": 21384
+    }
+  },
+  "scalars": {
+    "gemiddeld_inkomen_huishouden": 0.0,
+    "bezettingsgraad_woning": 2.3,
+    "stedelijkheidsgraad": 4
+  }
+}
