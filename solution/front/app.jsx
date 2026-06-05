@@ -2,6 +2,17 @@
 
 const { useState, useEffect, useMemo } = React;
 
+const API_DATA_KEY = "syntheticApiResponse";
+
+function readStoredApiData() {
+  try {
+    const raw = localStorage.getItem(API_DATA_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
 const THEMES = {
   rijksblauw: { primary: "#154273", accent: "#007bc7", naam: "Rijksblauw" },
   marineblauw: { primary: "#0b3d6e", accent: "#2b7de9", naam: "Marineblauw" },
@@ -24,6 +35,7 @@ function App() {
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
   const [screen, setScreen] = useState("select");
   const [result, setResult] = useState(null);
+  const [apiData, setApiData] = useState(readStoredApiData);
   const [cfg, setCfg] = useState({
     personaId: "lena",
     gemeente: "", wijk: "", buurt: "",
@@ -52,7 +64,37 @@ function App() {
 
   function go(next) { setScreen(next); window.scrollTo({ top: 0, behavior: "auto" }); }
 
+  function withActualQuality(generated, apiData) {
+    const qr = apiData?.result?.quality_report || null;
+    const area = apiData?.result?.area || null;
+    const realSampleSize = typeof apiData?.result?.n === "number" ? apiData.result.n : generated?.sampleSize || 0;
+    const realHouseholds = Math.max(1, Math.round(realSampleSize / (generated?.occupancy || 1)));
+
+    return {
+      ...generated,
+      sampleSize: realSampleSize,
+      households: realHouseholds,
+      inw: realSampleSize,
+      generatedAt: generated?.generatedAt || new Date(),
+      loc: {
+        ...generated?.loc,
+        buurt: generated?.loc?.buurt || (area ? { code: area.code, naam: area.name } : null),
+      },
+      quality: qr
+        ? {
+            fit: Math.max(0, Math.min(100, 100 - (qr.mean_abs_percentage_error || 0))),
+            tvd: Number(qr.total_abs_error_over_total || 0),
+            kAnon: generated?.quality?.kAnon || 0,
+            iterations: generated?.quality?.iterations || 0,
+            raw: qr,
+          }
+        : generated?.quality,
+      apiData,
+    };
+  }
+
   async function runGenerate() {
+    let nextApiData = null;
     if (cfg.buurt) {
       try {
         const response = await fetch("http://127.0.0.1:5000/get-synth", {
@@ -60,17 +102,28 @@ function App() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ buurt_code: cfg.buurt }),
         });
-        const data = await response.json();
-        console.log("POST /get-synth response", data);
+        nextApiData = await response.json();
+        setApiData(nextApiData);
+        localStorage.setItem(API_DATA_KEY, JSON.stringify(nextApiData));
+        console.log("POST /get-synth response", nextApiData);
       } catch (error) {
         console.error("POST /get-synth failed", error);
       }
     }
 
-    setResult(generate(cfg.buurt, cfg.vars, cfg.sampleSize));
+    const nextSampleSize = typeof nextApiData?.result?.n === "number" ? nextApiData.result.n : cfg.sampleSize;
+    setCfg((prev) => ({ ...prev, sampleSize: nextSampleSize }));
+    const generated = generate(cfg.buurt, cfg.vars, nextSampleSize);
+    setResult(withActualQuality(generated, nextApiData));
     go("pipeline");
   }
-  function restart() { setResult(null); go("select"); }
+
+  function restart() {
+    setResult(null);
+    setApiData(null);
+    localStorage.removeItem(API_DATA_KEY);
+    go("select");
+  }
 
   const stepIndex = { select: 0, pipeline: 1, dashboard: 2, report: 2, download: 2 }[screen];
 

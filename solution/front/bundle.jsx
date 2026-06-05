@@ -450,17 +450,19 @@ function Donut({ data, title, size = 150 }) {
 /* Radial gauge — for a single percentage (fit / quality) */
 function Gauge({ value, label, size = 132, good = 95 }) {
   const r = size / 2 - 12, cx = size / 2, cy = size / 2, circ = 2 * Math.PI * r;
-  const frac = Math.min(value, 100) / 100;
-  const stroke = value >= good ? "var(--ok)" : value >= 85 ? "var(--warn)" : "var(--err)";
+  const safeValue = Number.isFinite(value) ? Math.min(Math.max(value, 0), 100) : 0;
+  const displayValue = safeValue.toLocaleString("nl-NL", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const frac = safeValue / 100;
+  const stroke = safeValue >= good ? "var(--ok)" : safeValue >= 85 ? "var(--warn)" : "var(--err)";
   return (
-    <div style={chartStyles.gaugeWrap} role="img" aria-label={`${label}: ${value}%`}>
+    <div style={chartStyles.gaugeWrap} role="img" aria-label={`${label}: ${displayValue}%`}>
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} aria-hidden="true">
         <circle cx={cx} cy={cy} r={r} fill="none" stroke="var(--bg-sunken)" strokeWidth="12" />
         <circle cx={cx} cy={cy} r={r} fill="none" stroke={stroke} strokeWidth="12"
           strokeLinecap="round" strokeDasharray={`${frac * circ} ${circ}`}
           transform={`rotate(-90 ${cx} ${cy})`} style={{ transition: "stroke-dasharray .9s ease" }} />
         <text x="50%" y="48%" textAnchor="middle" dominantBaseline="middle"
-          style={{ fontSize: size * 0.24, fontWeight: 700, fill: "var(--fg)" }}>{value}%</text>
+          style={{ fontSize: size * 0.24, fontWeight: 700, fill: "var(--fg)" }}>{displayValue}%</text>
         <text x="50%" y="66%" textAnchor="middle" dominantBaseline="middle"
           style={{ fontSize: size * 0.1, fill: "var(--fg-subtle)" }}>match</text>
       </svg>
@@ -1670,9 +1672,9 @@ function DashboardScreen({ t, result, cfg, density, onReport, onDownload, onNew 
   const has = (id) => cfg.vars.includes(id);
 
   const kpis = [
-    { icon: "users", label: t.kpiPersons, value: cfg.sampleSize.toLocaleString("nl-NL") },
+    { icon: "users", label: t.kpiPersons, value: (result.sampleSize || result.inw || cfg.sampleSize).toLocaleString("nl-NL") },
     { icon: "home", label: t.kpiHouseholds, value: result.households.toLocaleString("nl-NL") },
-    { icon: "shieldCheck", label: t.kpiFit, value: result.quality.fit + "%", tone: "ok" },
+    { icon: "shieldCheck", label: t.kpiFit, value: `${Number(result.quality.fit || 0).toFixed(2)}%`, tone: "ok" },
     { icon: "layers", label: t.kpiDensity, value: result.density.toLocaleString("nl-NL") },
   ];
 
@@ -1759,18 +1761,26 @@ Object.assign(window, { DashboardScreen });
 // screen-report.jsx — quality & validation report.
 
 function ReportScreen({ t, result, cfg, onBack, onDownload }) {
-  const q = result.quality;
-  // per-variable match (synthetic vs source) — deterministic-ish from fit
+  const q = result.quality || {};
+  const raw = q.raw || {};
+  const fitValue = Number((typeof q.fit === "number" ? q.fit : (100 - (raw.mean_abs_percentage_error || 0))).toFixed(2));
   const perVar = cfg.vars
     .map((id) => VARIABLES.find((v) => v.id === id))
     .filter(Boolean)
-    .map((v, i) => ({ naam: v.naam, bron: v.bron, match: +(94.5 + ((i * 7 + result.density) % 50) / 10).toFixed(1) }));
+    .map((v, i) => ({ naam: v.naam, bron: v.bron, match: +(94.5 + ((i * 7 + (result.density || 0)) % 50) / 10).toFixed(2) }));
+
+  function fmt(value) {
+    if (Array.isArray(value)) return value.map((v) => v == null ? "—" : Number(v).toLocaleString("nl-NL", { minimumFractionDigits: 2, maximumFractionDigits: 2 })).join(" · ");
+    if (typeof value === "number") return Number(value).toLocaleString("nl-NL", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return value ?? "—";
+  }
 
   const metrics = [
-    { label: t.repFit, value: q.fit + "%", note: t.lang === "en" ? "weighted over fields" : "gewogen over kenmerken", tone: "ok" },
-    { label: t.repTVD, value: q.tvd.toFixed(3), note: t.lang === "en" ? "0 = perfect, lower is better" : "0 = perfect, lager is beter" },
-    { label: t.repK, value: "k = " + q.kAnon, note: t.lang === "en" ? "min. group size" : "min. groepsgrootte" },
-    { label: t.repIter, value: q.iterations, note: t.lang === "en" ? "until convergence" : "tot convergentie" },
+    { label: "Gemiddelde absolute percentagefout", value: fmt(raw.mean_abs_percentage_error), note: "Lager is beter", tone: "ok" },
+    { label: "Totale absolute fout / totaal", value: fmt(raw.total_abs_error_over_total), note: "Lager is beter", tone: "warn" },
+    { label: "Chi-kwadraat", value: fmt(raw.chi_square), note: "[statistiek, vrijheidsgraden, p-waarde]", tone: "ok" },
+    { label: "KL-divergentie", value: fmt(raw.kl_divergence), note: "Informatie-theoretische afstand", tone: "warn" },
+    { label: "JS-divergentie", value: fmt(raw.js_divergence), note: "Symmetrische divergentie", tone: "ok" },
   ];
 
   const sources = [
@@ -1790,7 +1800,7 @@ function ReportScreen({ t, result, cfg, onBack, onDownload }) {
 
       <div style={rep.topGrid}>
         <Card style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 8 }}>
-          <Gauge value={q.fit} label={t.repFit} size={150} />
+          <Gauge value={Math.max(0, Math.min(100, fitValue))} label="Kwaliteitsfit" size={150} />
           <p style={rep.gaugeNote}>{result.loc.buurt.naam}</p>
         </Card>
         <div style={rep.metricGrid}>
@@ -2026,6 +2036,17 @@ Object.assign(window, { DownloadScreen });
 // app.jsx — orchestration: routing, theming, tweaks.
 
 // (hooks hoisted to bundle top)
+const API_DATA_KEY = "syntheticApiResponse";
+
+function readStoredApiData() {
+  try {
+    const raw = localStorage.getItem(API_DATA_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
 const THEMES = {
   rijksblauw: { primary: "#154273", accent: "#007bc7", naam: "Rijksblauw" },
   marineblauw: { primary: "#0b3d6e", accent: "#2b7de9", naam: "Marineblauw" },
@@ -2048,6 +2069,7 @@ function App() {
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
   const [screen, setScreen] = useState("select");
   const [result, setResult] = useState(null);
+  const [apiData, setApiData] = useState(readStoredApiData);
   const [cfg, setCfg] = useState({
     personaId: "lena",
     gemeente: "", wijk: "", buurt: "",
@@ -2076,7 +2098,37 @@ function App() {
 
   function go(next) { setScreen(next); window.scrollTo({ top: 0, behavior: "auto" }); }
 
+  function withActualQuality(generated, apiData) {
+    const qr = apiData?.result?.quality_report || null;
+    const area = apiData?.result?.area || null;
+    const realSampleSize = typeof apiData?.result?.n === "number" ? apiData.result.n : generated?.sampleSize || 0;
+    const realHouseholds = Math.max(1, Math.round(realSampleSize / (generated?.occupancy || 1)));
+
+    return {
+      ...generated,
+      sampleSize: realSampleSize,
+      households: realHouseholds,
+      inw: realSampleSize,
+      generatedAt: generated?.generatedAt || new Date(),
+      loc: {
+        ...generated?.loc,
+        buurt: generated?.loc?.buurt || (area ? { code: area.code, naam: area.name } : null),
+      },
+      quality: qr
+        ? {
+            fit: Math.max(0, Math.min(100, 100 - (qr.mean_abs_percentage_error || 0))),
+            tvd: Number(qr.total_abs_error_over_total || 0),
+            kAnon: generated?.quality?.kAnon || 0,
+            iterations: generated?.quality?.iterations || 0,
+            raw: qr,
+          }
+        : generated?.quality,
+      apiData,
+    };
+  }
+
   async function runGenerate() {
+    let nextApiData = null;
     if (cfg.buurt) {
       try {
         const response = await fetch("http://127.0.0.1:5000/get-synth", {
@@ -2084,17 +2136,28 @@ function App() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ buurt_code: cfg.buurt }),
         });
-        const data = await response.json();
-        console.log("POST /get-synth response", data);
+        nextApiData = await response.json();
+        setApiData(nextApiData);
+        localStorage.setItem(API_DATA_KEY, JSON.stringify(nextApiData));
+        console.log("POST /get-synth response", nextApiData);
       } catch (error) {
         console.error("POST /get-synth failed", error);
       }
     }
 
-    setResult(generate(cfg.buurt, cfg.vars, cfg.sampleSize));
+    const nextSampleSize = typeof nextApiData?.result?.n === "number" ? nextApiData.result.n : cfg.sampleSize;
+    setCfg((prev) => ({ ...prev, sampleSize: nextSampleSize }));
+    const generated = generate(cfg.buurt, cfg.vars, nextSampleSize);
+    setResult(withActualQuality(generated, nextApiData));
     go("pipeline");
   }
-  function restart() { setResult(null); go("select"); }
+
+  function restart() {
+    setResult(null);
+    setApiData(null);
+    localStorage.removeItem(API_DATA_KEY);
+    go("select");
+  }
 
   const stepIndex = { select: 0, pipeline: 1, dashboard: 2, report: 2, download: 2 }[screen];
 

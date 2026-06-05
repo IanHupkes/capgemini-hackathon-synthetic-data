@@ -1,18 +1,26 @@
 // screen-report.jsx — quality & validation report.
 
 function ReportScreen({ t, result, cfg, onBack, onDownload }) {
-  const q = result.quality;
-  // per-variable match (synthetic vs source) — deterministic-ish from fit
+  const q = result.quality || {};
+  const raw = q.raw || {};
+  const fitValue = Number((typeof q.fit === "number" ? q.fit : (100 - (raw.mean_abs_percentage_error || 0))).toFixed(2));
   const perVar = cfg.vars
     .map((id) => VARIABLES.find((v) => v.id === id))
     .filter(Boolean)
-    .map((v, i) => ({ naam: v.naam, bron: v.bron, match: +(94.5 + ((i * 7 + result.density) % 50) / 10).toFixed(1) }));
+    .map((v, i) => ({ naam: v.naam, bron: v.bron, match: +(94.5 + ((i * 7 + (result.density || 0)) % 50) / 10).toFixed(2) }));
+
+  function fmt(value) {
+    if (Array.isArray(value)) return value.map((v) => v == null ? "—" : Number(v).toLocaleString("nl-NL", { minimumFractionDigits: 2, maximumFractionDigits: 2 })).join(" · ");
+    if (typeof value === "number") return Number(value).toLocaleString("nl-NL", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return value ?? "—";
+  }
 
   const metrics = [
-    { label: t.repFit, value: q.fit + "%", note: t.lang === "en" ? "weighted over fields" : "gewogen over kenmerken", tone: "ok" },
-    { label: t.repTVD, value: q.tvd.toFixed(3), note: t.lang === "en" ? "0 = perfect, lower is better" : "0 = perfect, lager is beter" },
-    { label: t.repK, value: "k = " + q.kAnon, note: t.lang === "en" ? "min. group size" : "min. groepsgrootte" },
-    { label: t.repIter, value: q.iterations, note: t.lang === "en" ? "until convergence" : "tot convergentie" },
+    { label: "Gemiddelde absolute percentagefout", value: fmt(raw.mean_abs_percentage_error), note: "Lager is beter", tone: "ok" },
+    { label: "Totale absolute fout / totaal", value: fmt(raw.total_abs_error_over_total), note: "Lager is beter", tone: "warn" },
+    { label: "Chi-kwadraat", value: fmt(raw.chi_square), note: "[statistiek, vrijheidsgraden, p-waarde]", tone: "ok" },
+    { label: "KL-divergentie", value: fmt(raw.kl_divergence), note: "Informatie-theoretische afstand", tone: "warn" },
+    { label: "JS-divergentie", value: fmt(raw.js_divergence), note: "Symmetrische divergentie", tone: "ok" },
   ];
 
   const sources = [
@@ -32,7 +40,7 @@ function ReportScreen({ t, result, cfg, onBack, onDownload }) {
 
       <div style={rep.topGrid}>
         <Card style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 8 }}>
-          <Gauge value={q.fit} label={t.repFit} size={150} />
+          <Gauge value={Math.max(0, Math.min(100, fitValue))} label="Kwaliteitsfit" size={150} />
           <p style={rep.gaugeNote}>{result.loc.buurt.naam}</p>
         </Card>
         <div style={rep.metricGrid}>

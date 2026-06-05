@@ -5,9 +5,9 @@ function DashboardScreen({ t, result, cfg, density, onReport, onDownload, onNew 
   const has = (id) => cfg.vars.includes(id);
 
   const kpis = [
-    { icon: "users", label: t.kpiPersons, value: cfg.sampleSize.toLocaleString("nl-NL") },
+    { icon: "users", label: t.kpiPersons, value: (result.sampleSize || result.inw || cfg.sampleSize).toLocaleString("nl-NL") },
     { icon: "home", label: t.kpiHouseholds, value: result.households.toLocaleString("nl-NL") },
-    { icon: "shieldCheck", label: t.kpiFit, value: result.quality.fit + "%", tone: "ok" },
+    { icon: "shieldCheck", label: t.kpiFit, value: `${Number(result.quality.fit || 0).toFixed(2)}%`, tone: "ok" },
     { icon: "layers", label: t.kpiDensity, value: result.density.toLocaleString("nl-NL") },
   ];
 

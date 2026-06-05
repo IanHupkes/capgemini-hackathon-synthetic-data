@@ -90,17 +90,19 @@ function Donut({ data, title, size = 150 }) {
 /* Radial gauge — for a single percentage (fit / quality) */
 function Gauge({ value, label, size = 132, good = 95 }) {
   const r = size / 2 - 12, cx = size / 2, cy = size / 2, circ = 2 * Math.PI * r;
-  const frac = Math.min(value, 100) / 100;
-  const stroke = value >= good ? "var(--ok)" : value >= 85 ? "var(--warn)" : "var(--err)";
+  const safeValue = Number.isFinite(value) ? Math.min(Math.max(value, 0), 100) : 0;
+  const displayValue = safeValue.toLocaleString("nl-NL", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const frac = safeValue / 100;
+  const stroke = safeValue >= good ? "var(--ok)" : safeValue >= 85 ? "var(--warn)" : "var(--err)";
   return (
-    <div style={chartStyles.gaugeWrap} role="img" aria-label={`${label}: ${value}%`}>
+    <div style={chartStyles.gaugeWrap} role="img" aria-label={`${label}: ${displayValue}%`}>
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} aria-hidden="true">
         <circle cx={cx} cy={cy} r={r} fill="none" stroke="var(--bg-sunken)" strokeWidth="12" />
         <circle cx={cx} cy={cy} r={r} fill="none" stroke={stroke} strokeWidth="12"
           strokeLinecap="round" strokeDasharray={`${frac * circ} ${circ}`}
           transform={`rotate(-90 ${cx} ${cy})`} style={{ transition: "stroke-dasharray .9s ease" }} />
         <text x="50%" y="48%" textAnchor="middle" dominantBaseline="middle"
-          style={{ fontSize: size * 0.24, fontWeight: 700, fill: "var(--fg)" }}>{value}%</text>
+          style={{ fontSize: size * 0.24, fontWeight: 700, fill: "var(--fg)" }}>{displayValue}%</text>
         <text x="50%" y="66%" textAnchor="middle" dominantBaseline="middle"
           style={{ fontSize: size * 0.1, fill: "var(--fg-subtle)" }}>match</text>
       </svg>
