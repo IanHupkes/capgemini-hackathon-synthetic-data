@@ -1,10 +1,11 @@
 // screen-pipeline.jsx — animated AI pipeline progress.
 
-function PipelineScreen({ t, cfg, sampleSize, onDone }) {
+function PipelineScreen({ t, cfg, sampleSize, pending, onDone }) {
   const { useState, useEffect, useRef } = React;
   const [active, setActive] = useState(0);     // index of running step
   const [done, setDone] = useState(false);
   const buurt = (findBuurt(cfg.buurt) || {}).buurt;
+  const ready = done && !pending;
 
   useEffect(() => {
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -28,9 +29,9 @@ function PipelineScreen({ t, cfg, sampleSize, onDone }) {
     <main id="hoofdinhoud" style={pipe.main}>
       <div style={pipe.box}>
         <div style={pipe.spinnerWrap} aria-hidden="true">
-          {!done ? <span style={pipe.spinner} /> : <span style={pipe.doneMark}><Icon name="check" size={34} stroke={3} /></span>}
+          {!ready ? <span style={pipe.spinner} /> : <span style={pipe.doneMark}><Icon name="check" size={34} stroke={3} /></span>}
         </div>
-        <h1 style={pipe.title}>{done ? (t.lang === "en" ? "Synthetic population ready" : "Synthetische populatie gereed") : t.pipeTitle}</h1>
+        <h1 style={pipe.title}>{ready ? (t.lang === "en" ? "Synthetic population ready" : "Synthetische populatie gereed") : t.pipeTitle}</h1>
         <p style={pipe.sub}>{buurt ? `${buurt.naam} · ${(sampleSize || cfg.sampleSize || 0).toLocaleString("nl-NL")} ${t.lang === "en" ? "individuals" : "personen"}` : t.pipeSub}</p>
 
         <div style={pipe.progressTrack} role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-label={t.pipeTitle}>
@@ -65,7 +66,10 @@ function PipelineScreen({ t, cfg, sampleSize, onDone }) {
 
         {done && (
           <div style={pipe.cta}>
-            <Button variant="primary" size="lg" onClick={onDone} icon={<Icon name="chart" size={20} />}>{t.pipeView}</Button>
+            <Button variant="primary" size="lg" disabled={pending} onClick={onDone}
+              icon={pending ? <span style={pipe.btnSpin} /> : <Icon name="chart" size={20} />}>
+              {pending ? (t.lang === "en" ? "Loading results…" : "Resultaten laden…") : t.pipeView}
+            </Button>
           </div>
         )}
       </div>
@@ -99,6 +103,7 @@ const pipe = {
   stepLabel: { flex: 1, fontSize: 15.5 },
   stepStatus: { fontSize: 13, color: "var(--fg-subtle)", fontVariantNumeric: "tabular-nums" },
   miniSpin: { width: 14, height: 14, borderRadius: "50%", border: "2.5px solid rgba(255,255,255,.4)", borderTopColor: "#fff", animation: "sd-spin .8s linear infinite", display: "block" },
+  btnSpin: { width: 18, height: 18, borderRadius: "50%", border: "2.5px solid rgba(255,255,255,.45)", borderTopColor: "#fff", animation: "sd-spin .8s linear infinite", display: "inline-block" },
 
   cta: { marginTop: 28, display: "flex", justifyContent: "center" },
 };

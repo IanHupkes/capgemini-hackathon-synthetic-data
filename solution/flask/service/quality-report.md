@@ -5,51 +5,22 @@
 - **Number of synthetic individuals:** 1872
 - **Number of synthetic households:** n/a (not modelled in current generator)
 - **Random seed:** None
-- **Generator version / git commit:** `4c0de0b`
+- **Generator version / git commit:** `unknown`
 
 ## 2. Variable coverage
 | Variable | Priority | Present? | Source table |
 |---|---|---|---|
-| Buurtcode / wijkcode (BU/WK) (`buurtcode`) | must-have | ✅ | 86165NED |
-| Bevolkingsomvang per buurt (`bevolkingsomvang-buurt`) | must-have | ✅ | 86165NED |
-| Leeftijdsverdeling (0-14 / 15-24 / 25-44 / 45-64 / 65+) (`leeftijdsverdeling`) | must-have | ✅ | 86165NED |
-| Huishoudgrootte en -samenstelling (`huishoudgrootte-samenstelling`) | must-have | ✅ | 86165NED |
-| Aandeel niet-westerse achtergrond (`aandeel-niet-westerse-achtergrond`) | must-have | ❌ | 86165NED |
-| Woningtype (appartement / rijtjeshuis / vrijstaand) (`woningtype`) | must-have | ❌ | 86165NED |
-| Bezettingsgraad woning (personen per woning) (`bezettingsgraad-woning`) | must-have | ❌ | 86165NED |
-| Gemiddeld besteedbaar inkomen per huishouden (`besteedbaar-inkomen-huishouden`) | must-have | ❌ | 86165NED |
-| Stedelijkheidsgraad / urban-rural classificatie (`stedelijkheidsgraad`) | must-have | ❌ | 86165NED |
-| Opleidingsniveau (laag / midden / hoog, % bevolking 25+) (`opleidingsniveau`) | must-have | ❌ | 82275NED |
-| RWZI-ID, naam, locatie, capaciteit (`rwzi-register`) | must-have | ❌ | rwzi-register |
-| Catchment-oppervlak en aansluitingen (`rwzi-catchment`) | must-have | ❌ | pdok-gwsw-beheergebied |
-| Landgebruik - aandeel woongebied (% oppervlak) (`landgebruik-woongebied`) | must-have | ❌ | 70262NED |
-| Landgebruik - aandeel industrie / bedrijventerrein (%) (`landgebruik-industrie`) | must-have | ❌ | 70262NED |
-| Landgebruik - aandeel agrarisch (%) (`landgebruik-agrarisch`) | must-have | ❌ | 70262NED |
-| Nabijheid (lucht)haven (km tot dichtstbijzijnde) (`nabijheid-luchthaven`) | must-have | ❌ | 85870NED |
-| Arbeidsmarktpositie (% werkend / werkloos / arbeidsongeschikt) (`arbeidsmarktpositie`) | should-have | ❌ | 86165NED |
-| Uitkeringsontvangers (bijstand / WW / WAO, n en %) (`uitkeringsontvangers`) | should-have | ❌ | 86165NED |
-| WMO-gebruik (% met maatwerkvoorziening) (`wmo-gebruik`) | should-have | ❌ | 86165NED |
-| Jeugdzorggebruik (% 0-17 jaar) (`jeugdzorggebruik`) | should-have | ❌ | 86165NED |
-| Arbeidssector (zorg / onderwijs / industrie / diensten, %) (`arbeidssector`) | should-have | ❌ | 82309NED |
-| Landgebruik - aandeel groen / natuur (%) (`landgebruik-groen`) | should-have | ❌ | 70262NED |
-| Landgebruik - aandeel water / waterwegen (%) (`landgebruik-water`) | should-have | ❌ | 70262NED |
-| Schoolgaande kinderen per buurt (% 4-17 jaar) (`schoolgaande-kinderen`) | should-have | ❌ | 86165NED |
-| Dagelijkse mobiliteit - woon-werkafstand (gem. km, % forensen) (`mobiliteit-woon-werk`) | should-have | ❌ | 84709NED |
-| Autobezit per huishouden (`autobezit`) | could-have | ❌ | 86165NED |
-| Nabijheid ziekenhuis / SEH (km) (`nabijheid-ziekenhuis`) | could-have | ❌ | 85870NED |
-| Nabijheid verpleeghuis / verzorgingstehuis (km) (`nabijheid-verpleeghuis`) | could-have | ❌ | 85870NED |
-| Instellingstype in catchment (school / ziekenhuis) (`instellingstype-catchment`) | could-have | ❌ | 85870NED |
-| Toeristische overnachtingen per jaar (n) (`toeristische-overnachtingen`) | would-have | ❌ | 82059NED |
+| n/a | n/a | n/a | variables.yaml not found |
 
 ## 3. Marginal fit (must-have variables)
 | Variable | Metric | Value | Threshold |
 |---|---|---|---|
-| leeftijd | MAPE | 19.12% | < 5% |
+| leeftijd | MAPE | 20.45% | < 5% |
 | leeftijd | Total Absolute Error / Total Population | 21.18% | lower is better |
-| leeftijd | Chi-square | 108.797 (dof=4) | p > 0.05 |
-| huishoudgrootte | MAPE | 16.63% | < 5% |
+| leeftijd | Chi-square | 107.618 (dof=4) | p > 0.05 |
+| huishoudgrootte | MAPE | 16.80% | < 5% |
 | huishoudgrootte | Total Absolute Error / Total Population | 13.80% | lower is better |
-| huishoudgrootte | Chi-square | 32.493 (dof=2) | p > 0.05 |
+| huishoudgrootte | Chi-square | 33.010 (dof=2) | p > 0.05 |
 
 ## 4. Cross-domain consistency (S1)
 | Cross\-tab | KL\(P\|\|Q\) | Jensen\-Shannon | Chi\-square |

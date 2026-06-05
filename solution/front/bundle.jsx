@@ -1557,11 +1557,12 @@ Object.assign(window, { MiniMap });
 /* ===================== screen-pipeline.jsx ===================== */
 // screen-pipeline.jsx — animated AI pipeline progress.
 
-function PipelineScreen({ t, cfg, onDone }) {
+function PipelineScreen({ t, cfg, sampleSize, pending, onDone }) {
   const { useState, useEffect, useRef } = React;
   const [active, setActive] = useState(0);     // index of running step
   const [done, setDone] = useState(false);
   const buurt = (findBuurt(cfg.buurt) || {}).buurt;
+  const ready = done && !pending;
 
   useEffect(() => {
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -1585,10 +1586,10 @@ function PipelineScreen({ t, cfg, onDone }) {
     <main id="hoofdinhoud" style={pipe.main}>
       <div style={pipe.box}>
         <div style={pipe.spinnerWrap} aria-hidden="true">
-          {!done ? <span style={pipe.spinner} /> : <span style={pipe.doneMark}><Icon name="check" size={34} stroke={3} /></span>}
+          {!ready ? <span style={pipe.spinner} /> : <span style={pipe.doneMark}><Icon name="check" size={34} stroke={3} /></span>}
         </div>
-        <h1 style={pipe.title}>{done ? (t.lang === "en" ? "Synthetic population ready" : "Synthetische populatie gereed") : t.pipeTitle}</h1>
-        <p style={pipe.sub}>{buurt ? `${buurt.naam} · ${cfg.sampleSize.toLocaleString("nl-NL")} ${t.lang === "en" ? "individuals" : "personen"}` : t.pipeSub}</p>
+        <h1 style={pipe.title}>{ready ? (t.lang === "en" ? "Synthetic population ready" : "Synthetische populatie gereed") : t.pipeTitle}</h1>
+        <p style={pipe.sub}>{buurt ? `${buurt.naam} · ${(sampleSize || cfg.sampleSize || 0).toLocaleString("nl-NL")} ${t.lang === "en" ? "individuals" : "personen"}` : t.pipeSub}</p>
 
         <div style={pipe.progressTrack} role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-label={t.pipeTitle}>
           <div style={{ ...pipe.progressFill, width: `${pct}%` }} />
@@ -1622,7 +1623,10 @@ function PipelineScreen({ t, cfg, onDone }) {
 
         {done && (
           <div style={pipe.cta}>
-            <Button variant="primary" size="lg" onClick={onDone} icon={<Icon name="chart" size={20} />}>{t.pipeView}</Button>
+            <Button variant="primary" size="lg" disabled={pending} onClick={onDone}
+              icon={pending ? <span style={pipe.btnSpin} /> : <Icon name="chart" size={20} />}>
+              {pending ? (t.lang === "en" ? "Loading results…" : "Resultaten laden…") : t.pipeView}
+            </Button>
           </div>
         )}
       </div>
@@ -1656,6 +1660,7 @@ const pipe = {
   stepLabel: { flex: 1, fontSize: 15.5 },
   stepStatus: { fontSize: 13, color: "var(--fg-subtle)", fontVariantNumeric: "tabular-nums" },
   miniSpin: { width: 14, height: 14, borderRadius: "50%", border: "2.5px solid rgba(255,255,255,.4)", borderTopColor: "#fff", animation: "sd-spin .8s linear infinite", display: "block" },
+  btnSpin: { width: 18, height: 18, borderRadius: "50%", border: "2.5px solid rgba(255,255,255,.45)", borderTopColor: "#fff", animation: "sd-spin .8s linear infinite", display: "inline-block" },
 
   cta: { marginTop: 28, display: "flex", justifyContent: "center" },
 };
@@ -2068,6 +2073,7 @@ function App() {
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
   const [screen, setScreen] = useState("select");
   const [result, setResult] = useState(null);
+  const [pending, setPending] = useState(false);
   const [apiData, setApiData] = useState(readStoredApiData);
   const [cfg, setCfg] = useState({
     personaId: "lena",
@@ -2126,29 +2132,35 @@ function App() {
     };
   }
 
-  async function runGenerate() {
-    let nextApiData = null;
-    if (cfg.buurt) {
-      try {
-        const response = await fetch("http://127.0.0.1:5000/get-synth", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ buurt_code: cfg.buurt }),
-        });
-        nextApiData = await response.json();
-        setApiData(nextApiData);
-        localStorage.setItem(API_DATA_KEY, JSON.stringify(nextApiData));
-        console.log("POST /get-synth response", nextApiData);
-      } catch (error) {
-        console.error("POST /get-synth failed", error);
-      }
-    }
-
-    const nextSampleSize = typeof nextApiData?.result?.n === "number" ? nextApiData.result.n : cfg.sampleSize;
-    setCfg((prev) => ({ ...prev, sampleSize: nextSampleSize }));
-    const generated = generate(cfg.buurt, cfg.vars, nextSampleSize);
-    setResult(withActualQuality(generated, nextApiData));
+  function runGenerate() {
+    setResult(null);
+    setPending(true);
     go("pipeline");
+
+    (async () => {
+      let nextApiData = null;
+      if (cfg.buurt) {
+        try {
+          const response = await fetch("http://127.0.0.1:5000/get-synth", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ buurt_code: cfg.buurt }),
+          });
+          nextApiData = await response.json();
+          setApiData(nextApiData);
+          localStorage.setItem(API_DATA_KEY, JSON.stringify(nextApiData));
+          console.log("POST /get-synth response", nextApiData);
+        } catch (error) {
+          console.error("POST /get-synth failed", error);
+        }
+      }
+
+      const nextSampleSize = typeof nextApiData?.result?.n === "number" ? nextApiData.result.n : cfg.sampleSize;
+      setCfg((prev) => ({ ...prev, sampleSize: nextSampleSize }));
+      const generated = generate(cfg.buurt, cfg.vars, nextSampleSize);
+      setResult(withActualQuality(generated, nextApiData));
+      setPending(false);
+    })();
   }
 
   function restart() {
@@ -2167,7 +2179,7 @@ function App() {
 
       <div key={screen} style={app.fade}>
         {screen === "select" && <SelectScreen t={tr} cfg={cfg} setCfg={setCfg} onGenerate={runGenerate} />}
-        {screen === "pipeline" && <PipelineScreen t={tr} cfg={cfg} sampleSize={result?.sampleSize || cfg.sampleSize} onDone={() => go("dashboard")} />}
+        {screen === "pipeline" && <PipelineScreen t={tr} cfg={cfg} sampleSize={result?.sampleSize || cfg.sampleSize} pending={pending} onDone={() => go("dashboard")} />}
         {screen === "dashboard" && result && <DashboardScreen t={tr} result={result} cfg={cfg} density={t.density}
           onReport={() => go("report")} onDownload={() => go("download")} onNew={restart} />}
         {screen === "report" && result && <ReportScreen t={tr} result={result} cfg={cfg}
